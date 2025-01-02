@@ -151,6 +151,9 @@ void f_fight(struct Map *map,int x,int y);
 int is_create_password(struct Map *map,int x,int y);
 void create_password(struct Map *map,time_t time_start);
 int panel(struct Player* p,struct Map *map);
+void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start);
+void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start);
+void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start);
 
 
 int main() {
@@ -972,1180 +975,81 @@ void move_player(struct Map *map,struct Player *p){
         }
         int c = getch();
         if(c == 'w'){
-            if(is_not_wall(map,p->x,p->y - 1) && !is_pillor(map,p->x,p->y - 1)){
-                if(is_food(map,p->x,p->y - 1)){
-                    move_effect("food",p,map,p->x,p->y - 1);
-                }
-                if(is_trap(map,p->x,p->y - 1)){
-                    move_effect("trap",p,map,p->x,p->y - 1);
-                }
-                if(is_spell(map,p->x,p->y - 1)){
-                    move_effect("spell",p,map,p->x,p->y - 1);
-                }
-                if(is_wepon(map,p->x,p->y - 1)){
-                    move_effect("wepon",p,map,p->x,p->y - 1);
-                }
-                if(is_gold(map,p->x,p->y - 1)){
-                    move_effect("gold",p,map,p->x,p->y - 1);
-                }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
-                }
-                if(is_fight_room(map,p->x,p->y - 1)){
-                    move_effect("fight",p,map,p->x,p->y - 1);
-                }
-                if(is_create_password(map,p->x,p->y - 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }
-                else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->y -= 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x,p->y - 1)){
-                if(is_corridor(map,p->x,p->y - 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->y -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x,p->y - 1)){
-                    if(is_password_door(map,p->x,p->y - 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->y -= 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,0,-1,time_start);
         }
         if(c == 'x'){
-            if(is_not_wall(map,p->x,p->y + 1) && !is_pillor(map,p->x,p->y + 1)){
-                if(is_food(map,p->x,p->y + 1)){
-                    move_effect("food",p,map,p->x,p->y + 1);
-                }
-                if(is_trap(map,p->x,p->y + 1)){
-                    move_effect("trap",p,map,p->x,p->y + 1);
-                }
-                if(is_spell(map,p->x,p->y + 1)){
-                    move_effect("spell",p,map,p->x,p->y + 1);
-                }
-                if(is_wepon(map,p->x,p->y + 1)){
-                    move_effect("wepon",p,map,p->x,p->y + 1);
-                }
-                if(is_gold(map,p->x,p->y + 1)){
-                    move_effect("gold",p,map,p->x,p->y + 1);
-                }
-                if(is_master_key(map,p->x,p->y + 1)){
-                    move_effect("master",p,map,p->x,p->y + 1);
-                }
-                if(is_fight_room(map,p->x,p->y + 1)){
-                    move_effect("fight",p,map,p->x,p->y + 1);
-                }
-                if(is_create_password(map,p->x,p->y + 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->y += 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x,p->y + 1)){
-                if(is_corridor(map,p->x,p->y + 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x,p->y + 1)){
-                    if(is_password_door(map,p->x,p->y + 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->y += 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,0,1,time_start);
         }
         if(c == 'a'){
-            if(is_not_wall(map,p->x - 1,p->y) && !is_pillor(map,p->x - 1,p->y)){
-                if(is_food(map,p->x - 1,p->y)){
-                    move_effect("food",p,map,p->x - 1,p->y);
-                }
-                if(is_trap(map,p->x - 1,p->y)){
-                    move_effect("trap",p,map,p->x - 1,p->y);
-                }
-                if(is_spell(map,p->x - 1,p->y)){
-                    move_effect("spell",p,map,p->x - 1,p->y);
-                }
-                if(is_wepon(map,p->x - 1,p->y)){
-                    move_effect("wepon",p,map,p->x - 1,p->y);
-                }
-                if(is_gold(map,p->x - 1,p->y)){
-                    move_effect("gold",p,map,p->x - 1,p->y);
-                }
-                if(is_master_key(map,p->x - 1,p->y)){
-                    move_effect("master",p,map,p->x - 1,p->y);
-                }
-                if(is_fight_room(map,p->x - 1,p->y)){
-                    move_effect("fight",p,map,p->x - 1,p->y);
-                }
-                if(is_create_password(map,p->x - 1,p->y)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x -= 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x - 1,p->y)){
-                if(is_corridor(map,p->x - 1,p->y)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x - 1,p->y)){
-                    if(is_password_door(map,p->x - 1,p->y)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x -= 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,-1,0,time_start);
         }
         if(c == 'd'){
-            if(is_not_wall(map,p->x + 1,p->y) && !is_pillor(map,p->x + 1,p->y)){
-                if(is_food(map,p->x + 1,p->y)){
-                    move_effect("food",p,map,p->x + 1,p->y);
-                }
-                if(is_trap(map,p->x + 1,p->y)){
-                    move_effect("trap",p,map,p->x + 1,p->y);
-                }
-                if(is_spell(map,p->x + 1,p->y)){
-                    move_effect("spell",p,map,p->x + 1,p->y);
-                }
-                if(is_wepon(map,p->x + 1,p->y)){
-                    move_effect("wepon",p,map,p->x + 1,p->y);
-                }
-                if(is_gold(map,p->x + 1,p->y)){
-                    move_effect("gold",p,map,p->x + 1,p->y);
-                }
-                if(is_master_key(map,p->x + 1,p->y)){
-                    move_effect("master",p,map,p->x + 1,p->y);
-                }
-                if(is_fight_room(map,p->x + 1,p->y)){
-                    move_effect("fight",p,map,p->x + 1,p->y);
-                }
-                if(is_create_password(map,p->x + 1,p->y)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x += 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x + 1,p->y)){
-                if(is_corridor(map,p->x + 1,p->y)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x + 1,p->y)){
-                    if(is_password_door(map,p->x + 1,p->y)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x += 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,1,0,time_start);
         }
         if(c == 'e'){
-            if(is_not_wall(map,p->x + 1,p->y - 1) && !is_pillor(map,p->x + 1,p->y - 1)){
-                if(is_food(map,p->x + 1,p->y - 1)){
-                    move_effect("food",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_trap(map,p->x + 1,p->y - 1)){
-                    move_effect("trap",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_spell(map,p->x + 1,p->y - 1)){
-                    move_effect("spell",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_wepon(map,p->x + 1,p->y - 1)){
-                    move_effect("wepon",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_gold(map,p->x + 1,p->y - 1)){
-                    move_effect("gold",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_master_key(map,p->x + 1,p->y - 1)){
-                    move_effect("master",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_fight_room(map,p->x + 1,p->y - 1)){
-                    move_effect("fight",p,map,p->x + 1,p->y - 1);
-                }
-                if(is_create_password(map,p->x + 1,p->y - 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x += 1;
-                p->y -= 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x + 1,p->y - 1)){
-                if(is_corridor(map,p->x + 1,p->y - 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x += 1;
-                    p->y -=1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x + 1,p->y - 1)){
-                    if(is_password_door(map,p->x + 1,p->y - 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x += 1;
-                            p->y -= 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,1,-1,time_start);
         }
         if(c == 'q'){
-            if(is_not_wall(map,p->x - 1,p->y - 1) && !is_pillor(map,p->x - 1,p->y - 1)){
-                if(is_food(map,p->x - 1,p->y - 1)){
-                    move_effect("food",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_trap(map,p->x - 1,p->y - 1)){
-                    move_effect("trap",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_spell(map,p->x - 1,p->y - 1)){
-                    move_effect("spell",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_wepon(map,p->x - 1,p->y - 1)){
-                    move_effect("wepon",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_gold(map,p->x - 1,p->y - 1)){
-                    move_effect("gold",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_master_key(map,p->x - 1,p->y - 1)){
-                    move_effect("master",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_fight_room(map,p->x - 1,p->y - 1)){
-                    move_effect("fight",p,map,p->x - 1,p->y - 1);
-                }
-                if(is_create_password(map,p->x - 1,p->y - 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x -= 1;
-                p->y -= 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x - 1,p->y - 1)){
-                if(is_corridor(map,p->x - 1,p->y - 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x -= 1;
-                    p->y -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x - 1,p->y - 1)){
-                    if(is_password_door(map,p->x - 1,p->y - 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x -= 1;
-                            p->y -= 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,-1,-1,time_start);
         }
         if(c == 'c'){
-            if(is_not_wall(map,p->x + 1,p->y + 1) && !is_pillor(map,p->x + 1,p->y + 1)){
-                if(is_food(map,p->x + 1,p->y + 1)){
-                    move_effect("food",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_trap(map,p->x + 1,p->y + 1)){
-                    move_effect("trap",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_spell(map,p->x + 1,p->y + 1)){
-                    move_effect("spell",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_wepon(map,p->x + 1,p->y + 1)){
-                    move_effect("wepon",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_gold(map,p->x + 1,p->y + 1)){
-                    move_effect("gold",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_master_key(map,p->x + 1,p->y + 1)){
-                    move_effect("master",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_fight_room(map,p->x + 1,p->y + 1)){
-                    move_effect("fight",p,map,p->x + 1,p->y + 1);
-                }
-                if(is_create_password(map,p->x + 1,p->y + 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x += 1;
-                p->y += 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x + 1,p->y + 1)){
-                if(is_corridor(map,p->x + 1,p->y + 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x += 1;
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x + 1,p->y + 1)){
-                    if(is_password_door(map,p->x + 1,p->y + 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x += 1;
-                            p->y += 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,1,1,time_start);
         }
         if(c == 'z'){
-            if(is_not_wall(map,p->x - 1,p->y + 1) && !is_pillor(map,p->x - 1,p->y + 1)){
-                if(is_food(map,p->x - 1,p->y + 1)){
-                    move_effect("food",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_trap(map,p->x - 1,p->y + 1)){
-                    move_effect("trap",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_spell(map,p->x - 1,p->y + 1)){
-                    move_effect("spell",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_wepon(map,p->x - 1,p->y + 1)){
-                    move_effect("wepon",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_gold(map,p->x - 1,p->y + 1)){
-                    move_effect("gold",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_master_key(map,p->x - 1,p->y + 1)){
-                    move_effect("master",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_fight_room(map,p->x - 1,p->y + 1)){
-                    move_effect("fight",p,map,p->x - 1,p->y + 1);
-                }
-                if(is_create_password(map,p->x - 1,p->y + 1)){
-                    create_password(map,time_start);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    mvprintw(p->y,p->x,"^");
-                    refresh();
-                }else{
-                    mvprintw(p->y,p->x," ");
-                    refresh();
-                }
-                p->x -= 1;
-                p->y += 1;
-                mvprintw(p->y,p->x,"P");
-                refresh();
-            }if(!is_not_wall(map,p->x - 1,p->y + 1)){
-                if(is_corridor(map,p->x - 1,p->y + 1)){
-                    mvprintw(p->y,p->x,"#");
-                    refresh();
-                    p->x -= 1;
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }
-                if(is_door(map,p->x - 1,p->y + 1)){
-                    if(is_password_door(map,p->x - 1,p->y + 1)){
-                        int resualt = panel(p,map);
-                        if(resualt){
-                            mvprintw(p->y,p->x," ");
-                            refresh();
-                            p->x -= 1;
-                            p->y += 1;
-                            mvprintw(p->y,p->x,"P");
-                            refresh();
-                        }
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
-            }
+            regular_move(p,map,-1,1,time_start);
         }
         if(c == 'f'){
             int c2 = getch();
             if(c2 == 'w'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x,p->y - 1) && !is_pillor(map,p->x,p->y - 1)){
-                    p->y -= 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x,p->y - 1)){
-                    p->y -= 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,0,-1,time_start);
             }
             if(c2 == 'x'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x,p->y + 1) && !is_pillor(map,p->x,p->y + 1)){
-                    p->y += 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x,p->y + 1)){
-                    p->y += 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,0,1,time_start);
             }
             if(c2 == 'd'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x + 1,p->y) && !is_pillor(map,p->x + 1,p->y)){
-                    p->x += 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x + 1,p->y)){
-                    p->x += 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,1,0,time_start);
             }
-            if(c2 == 'a'){int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x - 1,p->y) && !is_pillor(map,p->x - 1,p->y)){
-                    p->x -= 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x - 1,p->y)){
-                    p->x -= 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();}
+            if(c2 == 'a'){
+                f_move(p,map,-1,0,time_start);
+            }
             if(c2 == 'e'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x + 1,p->y - 1) && !is_pillor(map,p->x + 1,p->y - 1)){
-                    p->y -= 1;
-                    p->x += 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x + 1,p->y - 1)){
-                    p->y -= 1;
-                    p->x += 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,1,-1,time_start);
             }
             if(c2 == 'q'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x - 1,p->y - 1) && !is_pillor(map,p->x - 1,p->y - 1)){
-                    p->y -= 1;
-                    p->x -= 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x - 1,p->y - 1)){
-                    p->y -= 1;
-                    p->x -= 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,-1,-1,time_start);
             }
             if(c2 == 'c'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x + 1,p->y + 1) && !is_pillor(map,p->x + 1,p->y + 1)){
-                    p->y += 1;
-                    p->x += 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x + 1,p->y + 1)){
-                    p->y += 1;
-                    p->x += 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,1,1,time_start);
             }
             if(c2 == 'z'){
-                int x_before = p->x;
-                int y_before = p->y;
-                while (is_not_wall(map,p->x - 1,p->y + 1) && !is_pillor(map,p->x - 1,p->y + 1)){
-                    p->y += 1;
-                    p->x -= 1;
-                }
-                mvprintw(y_before,x_before," ");
-                if(is_food(map,p->x,p->y)){
-                    move_effect("food",p,map,p->x,p->y);
-                }
-                if(is_trap(map,p->x,p->y)){
-                    move_effect("trap",p,map,p->x,p->y);
-                }
-                if(is_spell(map,p->x,p->y)){
-                    move_effect("spell",p,map,p->x,p->y);
-                }
-                if(is_wepon(map,p->x,p->y)){
-                    move_effect("wepon",p,map,p->x,p->y);
-                }
-                if(is_gold(map,p->x,p->y)){
-                    move_effect("gold",p,map,p->x,p->y);
-                }
-                if(is_master_key(map,p->x,p->y)){
-                    move_effect("master",p,map,p->x,p->y);
-                }
-                if(is_fight_room(map,p->x,p->y)){
-                    move_effect("fight",p,map,p->x,p->y);
-                }
-                if(is_create_password(map,p->x,p->y)){
-                    create_password(map,time_start);
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
-                while(is_corridor(map,p->x - 1,p->y + 1)){
-                    p->y += 1;
-                    p->x -= 1;
-                }
-                if(is_corridor(map,x_before,y_before)){
-                    mvprintw(y_before,x_before,"#");
-                    refresh();
-                }else if(is_door(map,x_before,y_before)){
-                    mvprintw(y_before,x_before," ");
-                    refresh();
-                }
-                mvprintw(p->y,p->x,"P");
-                refresh();
+                f_move(p,map,-1,1,time_start);
             }
         }
         if(c == 'g'){
             int c2 = getch();
             if(c2 == 'w'){
-                if(is_not_wall(map,p->x,p->y - 1) && !is_pillor(map,p->x,p->y - 1)){
-                    if(is_trap(map,p->x,p->y - 1)){
-                        move_effect("trap",p,map,p->x,p->y + 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->y -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x,p->y - 1)){
-                    if(is_corridor(map,p->x,p->y - 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x,p->y - 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,0,-1,time_start);
             }
             if(c2 == 'x'){
-                if(is_not_wall(map,p->x,p->y + 1) && !is_pillor(map,p->x,p->y + 1)){
-                    if(is_trap(map,p->x,p->y + 1)){
-                        move_effect("trap",p,map,p->x,p->y + 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x,p->y + 1)){
-                    if(is_corridor(map,p->x,p->y + 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x,p->y + 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,0,1,time_start);
             }
             if(c2 == 'a'){
-                if(is_not_wall(map,p->x - 1,p->y) && !is_pillor(map,p->x - 1,p->y)){
-                    if(is_trap(map,p->x - 1,p->y)){
-                        move_effect("trap",p,map,p->x - 1,p->y);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x - 1,p->y)){
-                    if(is_corridor(map,p->x - 1,p->y)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x - 1,p->y)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,-1,0,time_start);
             }
             if(c2 == 'd'){
-                if(is_not_wall(map,p->x + 1,p->y) && !is_pillor(map,p->x + 1,p->y)){
-                    if(is_trap(map,p->x + 1,p->y)){
-                        move_effect("trap",p,map,p->x + 1,p->y);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x + 1,p->y)){
-                    if(is_corridor(map,p->x + 1,p->y)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x + 1,p->y)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,1,0,time_start);
             }
             if(c2 == 'e'){
-                if(is_not_wall(map,p->x + 1,p->y - 1) && !is_pillor(map,p->x + 1,p->y - 1)){
-                    if(is_trap(map,p->x + 1,p->y - 1)){
-                        move_effect("trap",p,map,p->x + 1,p->y - 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x += 1;
-                    p->y -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x + 1,p->y - 1)){
-                    if(is_corridor(map,p->x + 1,p->y - 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x += 1;
-                        p->y -=1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x + 1,p->y - 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,1,-1,time_start);
             }
             if(c2 == 'q'){
-                if(is_not_wall(map,p->x - 1,p->y - 1) && !is_pillor(map,p->x - 1,p->y - 1)){
-                    if(is_trap(map,p->x - 1,p->y - 1)){
-                        move_effect("trap",p,map,p->x - 1,p->y - 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x -= 1;
-                    p->y -= 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x - 1,p->y - 1)){
-                    if(is_corridor(map,p->x - 1,p->y - 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x -= 1;
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x - 1,p->y - 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        p->y -= 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,-1,-1,time_start);
             }
             if(c2 == 'c'){
-                if(is_not_wall(map,p->x + 1,p->y + 1) && !is_pillor(map,p->x + 1,p->y + 1)){
-                    if(is_trap(map,p->x + 1,p->y + 1)){
-                        move_effect("trap",p,map,p->x + 1,p->y + 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x += 1;
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x + 1,p->y + 1)){
-                    if(is_corridor(map,p->x + 1,p->y + 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x += 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x + 1,p->y + 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x += 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,1,1,time_start);
             }
             if(c2 == 'z'){
-                if(is_not_wall(map,p->x - 1,p->y + 1) && !is_pillor(map,p->x - 1,p->y + 1)){
-                    if(is_trap(map,p->x - 1,p->y + 1)){
-                        move_effect("trap",p,map,p->x - 1,p->y + 1);
-                    }
-                    if(is_trap(map,p->x,p->y)){
-                        mvprintw(p->y,p->x,"^");
-                        refresh();
-                    }else{
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                    }
-                    p->x -= 1;
-                    p->y += 1;
-                    mvprintw(p->y,p->x,"P");
-                    refresh();
-                }if(!is_not_wall(map,p->x - 1,p->y + 1)){
-                    if(is_corridor(map,p->x - 1,p->y + 1)){
-                        mvprintw(p->y,p->x,"#");
-                        refresh();
-                        p->x -= 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                    if(is_door(map,p->x - 1,p->y + 1)){
-                        mvprintw(p->y,p->x," ");
-                        refresh();
-                        p->x -= 1;
-                        p->y += 1;
-                        mvprintw(p->y,p->x,"P");
-                        refresh();
-                    }
-                }
+                g_move(p,map,-1,1,time_start);
             }
         }
     }
@@ -2514,4 +1418,159 @@ void create_password(struct Map *map,time_t time_start){
     move(0,60);
     printw("The password: %d",password);
     time(&time_start);
+}
+
+void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
+    if(is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y)){
+        if(is_food(map,p->x + second_x,p->y + second_y)){
+            move_effect("food",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_trap(map,p->x + second_x,p->y + second_y)){
+            move_effect("trap",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_spell(map,p->x + second_x,p->y + second_y)){
+            move_effect("spell",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_wepon(map,p->x + second_x,p->y + second_y)){
+            move_effect("wepon",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_gold(map,p->x + second_x,p->y + second_y)){
+            move_effect("gold",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_master_key(map,p->x + second_x,p->y + second_y)){
+            move_effect("master",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_fight_room(map,p->x + second_x,p->y + second_y)){
+            move_effect("fight",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_create_password(map,p->x + second_x,p->y + second_y)){
+            create_password(map,time_start);
+        }
+        if(is_trap(map,p->x,p->y)){
+            mvprintw(p->y,p->x,"^");
+            refresh();
+        }
+        else{
+            mvprintw(p->y,p->x," ");
+            refresh();
+        }
+        p->y += second_y;
+        p->x += second_x;
+        mvprintw(p->y,p->x,"P");
+        refresh();
+    }if(!is_not_wall(map,p->x + second_x,p->y + second_y)){
+        if(is_corridor(map,p->x + second_x,p->y + second_y)){
+            mvprintw(p->y,p->x,"#");
+            refresh();
+            p->y += second_y;
+            p->x += second_x;
+            mvprintw(p->y,p->x,"P");
+            refresh();
+        }
+        if(is_door(map,p->x + second_x,p->y + second_y)){
+            if(is_password_door(map,p->x + second_x,p->y + second_y)){
+                int resualt = panel(p,map);
+                if(resualt){
+                    mvprintw(p->y,p->x," ");
+                    refresh();
+                    p->y += second_y;
+                    p->x += second_x;
+                    mvprintw(p->y,p->x,"P");
+                    refresh();
+                }
+            }else{
+                mvprintw(p->y,p->x," ");
+                refresh();
+                p->y += second_y;
+                p->x += second_x;
+                mvprintw(p->y,p->x,"P");
+                refresh();
+            }
+        }
+    }
+}
+
+void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
+    int x_before = p->x;
+    int y_before = p->y;
+    while (is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y)){
+        p->y += second_y;
+        p->x += second_x;
+    }
+    mvprintw(y_before,x_before," ");
+    if(is_food(map,p->x,p->y)){
+        move_effect("food",p,map,p->x,p->y);
+    }
+    if(is_trap(map,p->x,p->y)){
+        move_effect("trap",p,map,p->x,p->y);
+    }
+    if(is_spell(map,p->x,p->y)){
+        move_effect("spell",p,map,p->x,p->y);
+    }
+    if(is_wepon(map,p->x,p->y)){
+        move_effect("wepon",p,map,p->x,p->y);
+    }
+    if(is_gold(map,p->x,p->y)){
+        move_effect("gold",p,map,p->x,p->y);
+    }
+    if(is_master_key(map,p->x,p->y)){
+        move_effect("master",p,map,p->x,p->y);
+    }
+    if(is_fight_room(map,p->x,p->y)){
+        move_effect("fight",p,map,p->x,p->y);
+    }
+    if(is_create_password(map,p->x,p->y)){
+        create_password(map,time_start);
+    }
+    mvprintw(p->y,p->x,"P");
+    refresh();
+    while(is_corridor(map,p->x + second_x,p->y + second_y)){
+    p->y += second_y;
+    p->x += second_x;
+    }
+    if(is_corridor(map,x_before,y_before)){
+    mvprintw(y_before,x_before,"#");
+    refresh();
+    }else if(is_door(map,x_before,y_before)){
+    mvprintw(y_before,x_before," ");
+    refresh();
+    }
+    mvprintw(p->y,p->x,"P");
+    refresh();
+}
+
+void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
+    if(is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y)){
+        if(is_trap(map,p->x + second_x,p->y + second_y)){
+            move_effect("trap",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_trap(map,p->x,p->y)){
+            mvprintw(p->y,p->x,"^");
+            refresh();
+        }else{
+            mvprintw(p->y,p->x," ");
+            refresh();
+        }
+        p->y += second_y;
+        p->x += second_x;
+        mvprintw(p->y,p->x,"P");
+        refresh();
+    }if(!is_not_wall(map,p->x + second_x,p->y + second_y)){
+        if(is_corridor(map,p->x + second_x,p->y + second_y)){
+            mvprintw(p->y,p->x,"#");
+            refresh();
+            p->y += second_y;
+            p->x += second_x;
+            mvprintw(p->y,p->x,"P");
+            refresh();
+        }
+        if(is_door(map,p->x + second_x,p->y + second_y)){
+            mvprintw(p->y,p->x," ");
+            refresh();
+            p->y += second_y;
+            p->x += second_x;
+            mvprintw(p->y,p->x,"P");
+            refresh();
+        }
+    }
 }
