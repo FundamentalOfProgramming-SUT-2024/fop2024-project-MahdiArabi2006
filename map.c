@@ -108,6 +108,9 @@ struct Map{
     struct Wepon wepons[3];
     struct Spell spells[3];
     struct Food foods[3];
+    int last_password;
+    int x_password_door;
+    int y_password_door;
 };
 
 struct Game{
@@ -144,7 +147,10 @@ int is_master_key(struct Map *map,int x, int y);
 void f_master_key(struct Map *map,int x, int y);
 int is_password_door(struct Map *map,int x, int y);
 int is_fight_room(struct Map *map,int x, int y);
-int panel(struct Player* p);
+void f_fight(struct Map *map,int x,int y);
+int is_create_password(struct Map *map,int x,int y);
+void create_password(struct Map *map,time_t time_start);
+int panel(struct Player* p,struct Map *map);
 
 
 int main() {
@@ -357,8 +363,8 @@ void generate_map(struct Map *map) {
     map->x_stair = 0;
     map->y_stair = 0;
     while(map->x_stair == 0 || map->y_stair == 0){
-        map->x_stair = rand() % ((map->rooms[map->number_room_stair].x + map->rooms[map->number_room_stair].size - 2) - (map->rooms[map->number_room_stair].x + 2) + 1) + ((map->rooms[map->number_room_stair].x + 2));
-        map->y_stair = rand() % ((map->rooms[map->number_room_stair].y + map->rooms[map->number_room_stair].size - 2) - (map->rooms[map->number_room_stair].y + 2) + 1) + ((map->rooms[map->number_room_stair].y + 2));
+        map->x_stair = rand() % ((map->rooms[map->number_room_stair].x + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].x + 1) + 1) + ((map->rooms[map->number_room_stair].x + 1));
+        map->y_stair = rand() % ((map->rooms[map->number_room_stair].y + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].y + 1) + 1) + ((map->rooms[map->number_room_stair].y + 1));
     }
     move(map->y_stair,map->x_stair );
     printw("<");
@@ -370,8 +376,8 @@ void generate_map(struct Map *map) {
         map->pillors[i].x_pillar = 0;
         map->pillors[i].y_pillar = 0;
         while(map->pillors[i].x_pillar == 0 || map->pillors[i].y_pillar == 0 || (map->pillors[i].x_pillar == map->x_stair && map->pillors[i].y_pillar == map->y_stair)){
-            map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 2) - (map->rooms[map->pillors[i].number_room].x + 2) + 1) + ((map->rooms[map->pillors[i].number_room].x + 2));
-            map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 2) - (map->rooms[map->pillors[i].number_room].y + 2) + 1) + ((map->rooms[map->pillors[i].number_room].y + 2));
+            map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].x + 1) + 1) + ((map->rooms[map->pillors[i].number_room].x + 1));
+            map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].y + 1) + 1) + ((map->rooms[map->pillors[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -526,8 +532,8 @@ void generate_map(struct Map *map) {
         map->traps[i].x_trap = 0;
         map->traps[i].y_trap = 0;
         while(map->traps[i].x_trap == 0 || map->traps[i].y_trap == 0 || (map->traps[i].x_trap == map->x_stair && map->traps[i].y_trap == map->y_stair) || (map->traps[i].x_trap == map->pillors[0].x_pillar && map->traps[i].y_trap == map->pillors[0].y_pillar) || (map->traps[i].x_trap == map->pillors[1].x_pillar && map->traps[i].y_trap == map->pillors[1].y_pillar) || (map->traps[i].x_trap == map->pillors[2].x_pillar && map->traps[i].y_trap == map->pillors[2].y_pillar)){
-            map->traps[i].x_trap = rand() % ((map->rooms[map->traps[i].number_room].x + map->rooms[map->traps[i].number_room].size - 2) - (map->rooms[map->traps[i].number_room].x + 2) + 1) + ((map->rooms[map->traps[i].number_room].x + 2));
-            map->traps[i].y_trap = rand() % ((map->rooms[map->traps[i].number_room].y + map->rooms[map->traps[i].number_room].size - 2) - (map->rooms[map->traps[i].number_room].y + 2) + 1) + ((map->rooms[map->traps[i].number_room].y + 2));
+            map->traps[i].x_trap = rand() % ((map->rooms[map->traps[i].number_room].x + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].x + 1) + 1) + ((map->rooms[map->traps[i].number_room].x + 1));
+            map->traps[i].y_trap = rand() % ((map->rooms[map->traps[i].number_room].y + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].y + 1) + 1) + ((map->rooms[map->traps[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -539,8 +545,8 @@ void generate_map(struct Map *map) {
     map->x_fight_room = 0;
     map->y_fight_room = 0;
     while(map->x_fight_room == 0 || map->y_fight_room == 0 || (map->x_fight_room == map->x_stair && map->y_fight_room == map->y_stair) || (map->x_fight_room == map->pillors[0].x_pillar && map->y_fight_room == map->pillors[0].y_pillar) || (map->x_fight_room == map->pillors[1].x_pillar && map->y_fight_room == map->pillors[1].y_pillar) || (map->x_fight_room == map->pillors[2].x_pillar && map->y_fight_room == map->pillors[2].y_pillar) || (map->x_fight_room == map->traps[0].x_trap && map->y_fight_room == map->traps[0].y_trap) || (map->x_fight_room == map->traps[1].x_trap && map->y_fight_room == map->traps[1].y_trap) || (map->x_fight_room == map->traps[2].x_trap && map->y_fight_room == map->traps[2].y_trap)){
-        map->x_fight_room = rand() % ((map->rooms[map->number_room_fight_room].x + map->rooms[map->number_room_fight_room].size - 2) - (map->rooms[map->number_room_fight_room].x + 2) + 1) + ((map->rooms[map->number_room_fight_room].x + 2));
-        map->y_fight_room = rand() % ((map->rooms[map->number_room_fight_room].y + map->rooms[map->number_room_fight_room].size - 2) - (map->rooms[map->number_room_fight_room].y + 2) + 1) + ((map->rooms[map->number_room_fight_room].y + 2));
+        map->x_fight_room = rand() % ((map->rooms[map->number_room_fight_room].x + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].x + 1) + 1) + ((map->rooms[map->number_room_fight_room].x + 1));
+        map->y_fight_room = rand() % ((map->rooms[map->number_room_fight_room].y + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].y + 1) + 1) + ((map->rooms[map->number_room_fight_room].y + 1));
     }
     move(map->y_fight_room,map->x_fight_room);
     printw("F");
@@ -554,12 +560,14 @@ void generate_map(struct Map *map) {
         map->number_Password_Doors_room = rand() % map->number_of_rooms;
     }
     map->rooms[map->number_Password_Doors_room].doors[0].is_password_door = 1;
+    map->x_password_door = map->rooms[map->number_Password_Doors_room].doors[0].x_door;
+    map->y_password_door = map->rooms[map->number_Password_Doors_room].doors[0].y_door;
     //Create_password
     map->x_create_paasword = 0;
     map->y_create_paasword = 0;
     while(map->x_create_paasword == 0 || map->y_create_paasword == 0 || (map->x_create_paasword == map->x_stair && map->y_create_paasword == map->y_stair) || (map->x_create_paasword == map->x_fight_room && map->y_create_paasword == map->y_fight_room) || (map->x_create_paasword == map->pillors[0].x_pillar && map->y_create_paasword == map->pillors[0].y_pillar) || (map->x_create_paasword == map->pillors[1].x_pillar && map->y_create_paasword == map->pillors[1].y_pillar) || (map->x_create_paasword == map->pillors[2].x_pillar && map->y_create_paasword == map->pillors[2].y_pillar) || (map->x_create_paasword == map->traps[0].x_trap && map->y_create_paasword == map->traps[0].y_trap) || (map->x_create_paasword == map->traps[1].x_trap && map->y_create_paasword == map->traps[1].y_trap) || (map->x_create_paasword == map->traps[2].x_trap && map->y_create_paasword == map->traps[2].y_trap)){
-        map->x_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].x + map->rooms[map->number_Password_Doors_room].size - 2) - (map->rooms[map->number_Password_Doors_room].x + 2) + 1) + ((map->rooms[map->number_Password_Doors_room].x + 2));
-        map->y_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].y + map->rooms[map->number_Password_Doors_room].size - 2) - (map->rooms[map->number_Password_Doors_room].y + 2) + 1) + ((map->rooms[map->number_Password_Doors_room].y + 2));
+        map->x_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].x + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].x + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].x + 1));
+        map->y_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].y + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].y + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].y + 1));
     }
     move(map->y_create_paasword,map->x_create_paasword);
     printw("&");
@@ -568,8 +576,8 @@ void generate_map(struct Map *map) {
     map->x_Master_Key = 0;
     map->y_Master_Key = 0;
     while(map->x_Master_Key == 0 || map->y_Master_Key == 0 || (map->x_Master_Key == map->x_stair && map->y_Master_Key == map->y_stair) || (map->x_Master_Key == map->x_create_paasword && map->y_Master_Key == map->y_create_paasword) || (map->x_Master_Key == map->x_fight_room && map->y_Master_Key == map->y_fight_room) || is_pillor(map,map->x_Master_Key,map->y_Master_Key) || is_trap(map,map->x_Master_Key,map->y_Master_Key)){
-        map->x_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].x + map->rooms[map->number_Master_Key_room].size - 2) - (map->rooms[map->number_Master_Key_room].x + 2) + 1) + ((map->rooms[map->number_Master_Key_room].x + 2));
-        map->y_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].y + map->rooms[map->number_Master_Key_room].size - 2) - (map->rooms[map->number_Master_Key_room].y + 2) + 1) + ((map->rooms[map->number_Master_Key_room].y + 2));
+        map->x_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].x + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].x + 1) + 1) + ((map->rooms[map->number_Master_Key_room].x + 1));
+        map->y_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].y + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].y + 1) + 1) + ((map->rooms[map->number_Master_Key_room].y + 1));
     }
     start_color();
     init_pair(1,COLOR_YELLOW,COLOR_WHITE);
@@ -586,8 +594,8 @@ void generate_map(struct Map *map) {
         map->foods[i].x_food = 0;
         map->foods[i].y_food = 0;
         while(map->foods[i].x_food == 0 || map->foods[i].y_food == 0 || (map->foods[i].x_food == map->x_stair && map->foods[i].y_food == map->y_stair) || (map->foods[i].x_food == map->x_create_paasword && map->foods[i].y_food == map->y_create_paasword) || (map->foods[i].x_food == map->x_fight_room && map->foods[i].y_food == map->y_fight_room) || (map->foods[i].x_food == map->x_Master_Key && map->foods[i].y_food == map->y_Master_Key) || is_pillor(map,map->foods[i].x_food,map->foods[i].y_food) || is_trap(map,map->foods[i].x_food,map->foods[i].y_food)){
-            map->foods[i].x_food = rand() % ((map->rooms[map->foods[i].number_room].x + map->rooms[map->foods[i].number_room].size - 2) - (map->rooms[map->foods[i].number_room].x + 2) + 1) + ((map->rooms[map->foods[i].number_room].x + 2));
-            map->foods[i].y_food = rand() % ((map->rooms[map->foods[i].number_room].y + map->rooms[map->foods[i].number_room].size - 2) - (map->rooms[map->foods[i].number_room].y + 2) + 1) + ((map->rooms[map->foods[i].number_room].y + 2));
+            map->foods[i].x_food = rand() % ((map->rooms[map->foods[i].number_room].x + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].x + 1) + 1) + ((map->rooms[map->foods[i].number_room].x + 1));
+            map->foods[i].y_food = rand() % ((map->rooms[map->foods[i].number_room].y + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].y + 1) + 1) + ((map->rooms[map->foods[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -603,8 +611,8 @@ void generate_map(struct Map *map) {
         map->spells[i].x_spell = 0;
         map->spells[i].y_spell = 0;
         while(map->spells[i].x_spell == 0 || map->spells[i].y_spell == 0 || (map->spells[i].x_spell == map->x_stair && map->spells[i].y_spell == map->y_stair) || (map->spells[i].x_spell == map->x_create_paasword && map->spells[i].y_spell == map->y_create_paasword) || (map->spells[i].x_spell == map->x_fight_room && map->spells[i].y_spell == map->y_fight_room) || (map->spells[i].x_spell == map->x_Master_Key && map->spells[i].y_spell == map->y_Master_Key) || is_pillor(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_trap(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_food(map,map->spells[i].x_spell,map->spells[i].y_spell)){
-            map->spells[i].x_spell = rand() % ((map->rooms[map->spells[i].number_room].x + map->rooms[map->spells[i].number_room].size - 2) - (map->rooms[map->spells[i].number_room].x + 2) + 1) + ((map->rooms[map->spells[i].number_room].x + 2));
-            map->spells[i].y_spell = rand() % ((map->rooms[map->spells[i].number_room].y + map->rooms[map->spells[i].number_room].size - 2) - (map->rooms[map->spells[i].number_room].y + 2) + 1) + ((map->rooms[map->spells[i].number_room].y + 2));
+            map->spells[i].x_spell = rand() % ((map->rooms[map->spells[i].number_room].x + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].x + 1) + 1) + ((map->rooms[map->spells[i].number_room].x + 1));
+            map->spells[i].y_spell = rand() % ((map->rooms[map->spells[i].number_room].y + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].y + 1) + 1) + ((map->rooms[map->spells[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -620,8 +628,8 @@ void generate_map(struct Map *map) {
         map->wepons[i].x_wepon = 0;
         map->wepons[i].y_wepon = 0;
         while(map->wepons[i].x_wepon == 0 || map->wepons[i].x_wepon == 0 || (map->wepons[i].x_wepon == map->x_stair && map->wepons[i].y_wepon == map->y_stair) || (map->wepons[i].x_wepon == map->x_create_paasword && map->wepons[i].y_wepon == map->y_create_paasword) || (map->wepons[i].x_wepon == map->x_fight_room && map->wepons[i].y_wepon == map->y_fight_room) || (map->wepons[i].x_wepon == map->x_Master_Key && map->wepons[i].y_wepon == map->y_Master_Key) || is_pillor(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_trap(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_food(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_spell(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon)){
-            map->wepons[i].x_wepon = rand() % ((map->rooms[map->wepons[i].number_room].x + map->rooms[map->wepons[i].number_room].size - 2) - (map->rooms[map->wepons[i].number_room].x + 2) + 1) + ((map->rooms[map->wepons[i].number_room].x + 2));
-            map->wepons[i].y_wepon = rand() % ((map->rooms[map->wepons[i].number_room].y + map->rooms[map->wepons[i].number_room].size - 2) - (map->rooms[map->wepons[i].number_room].y + 2) + 1) + ((map->rooms[map->wepons[i].number_room].y + 2));
+            map->wepons[i].x_wepon = rand() % ((map->rooms[map->wepons[i].number_room].x + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].x + 1) + 1) + ((map->rooms[map->wepons[i].number_room].x + 1));
+            map->wepons[i].y_wepon = rand() % ((map->rooms[map->wepons[i].number_room].y + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].y + 1) + 1) + ((map->rooms[map->wepons[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -643,8 +651,8 @@ void generate_map(struct Map *map) {
         map->golds[i].x_gold = 0;
         map->golds[i].y_gold = 0;
         while(map->golds[i].x_gold == 0 || map->golds[i].y_gold == 0 || (map->golds[i].x_gold == map->x_stair && map->golds[i].y_gold == map->y_stair) || (map->golds[i].x_gold == map->x_create_paasword && map->golds[i].y_gold == map->y_create_paasword) || (map->golds[i].x_gold == map->x_fight_room && map->golds[i].y_gold == map->y_fight_room) || (map->golds[i].x_gold == map->x_Master_Key && map->golds[i].y_gold == map->y_Master_Key) || is_pillor(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_trap(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_food(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_spell(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_wepon(map,map->golds[i].x_gold,map->golds[i].y_gold)){
-            map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 2) - (map->rooms[map->golds[i].number_room].x + 2) + 1) + ((map->rooms[map->golds[i].number_room].x + 2));
-            map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 2) - (map->rooms[map->golds[i].number_room].y + 2) + 1) + ((map->rooms[map->golds[i].number_room].y + 2));
+            map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].x + 1) + 1) + ((map->rooms[map->golds[i].number_room].x + 1));
+            map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].y + 1) + 1) + ((map->rooms[map->golds[i].number_room].y + 1));
         }
     }
     for(int i = 0; i < 3; i++){
@@ -949,12 +957,19 @@ void move_player(struct Map *map,struct Player *p){
     move(0,0);
     printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
     while(p->x == 0 || p->y == 0 || (p->x == map->x_stair && p->y == map->y_stair) || (p->x == map->x_create_paasword && p->y == map->y_create_paasword) || (p->x == map->x_fight_room && p->y == map->y_fight_room) || (p->x == map->x_Master_Key && p->y == map->y_Master_Key) || is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_food(map,p->x,p->y) || is_spell(map,p->x,p->y) || is_wepon(map,p->x,p->y) || is_gold(map,p->x,p->y)){
-        p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 2) - (map->rooms[start_room].x + 2) + 1) + ((map->rooms[start_room].x + 2));
-        p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 2) - (map->rooms[start_room].y + 2) + 1) + ((map->rooms[start_room].y + 2));
+        p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
+        p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
     }
     mvprintw(p->y,p->x,"P");
     refresh();
+    time_t time_start;
     while (1){
+        time_t time_end;
+        time(&time_end);
+        if(time_end - time_start >= 10){
+            move(0,60);
+            clrtoeol();
+        }
         int c = getch();
         if(c == 'w'){
             if(is_not_wall(map,p->x,p->y - 1) && !is_pillor(map,p->x,p->y - 1)){
@@ -975,6 +990,12 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_master_key(map,p->x,p->y - 1)){
                     move_effect("master",p,map,p->x,p->y - 1);
+                }
+                if(is_fight_room(map,p->x,p->y - 1)){
+                    move_effect("fight",p,map,p->x,p->y - 1);
+                }
+                if(is_create_password(map,p->x,p->y - 1)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -997,7 +1018,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x,p->y - 1)){
                     if(is_password_door(map,p->x,p->y - 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1032,6 +1053,15 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y + 1)){
                     move_effect("gold",p,map,p->x,p->y + 1);
                 }
+                if(is_master_key(map,p->x,p->y + 1)){
+                    move_effect("master",p,map,p->x,p->y + 1);
+                }
+                if(is_fight_room(map,p->x,p->y + 1)){
+                    move_effect("fight",p,map,p->x,p->y + 1);
+                }
+                if(is_create_password(map,p->x,p->y + 1)){
+                    create_password(map,time_start);
+                }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
                     refresh();
@@ -1052,7 +1082,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x,p->y + 1)){
                     if(is_password_door(map,p->x,p->y + 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1087,8 +1117,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x - 1,p->y)){
                     move_effect("gold",p,map,p->x - 1,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x - 1,p->y)){
+                    move_effect("master",p,map,p->x - 1,p->y);
+                }
+                if(is_fight_room(map,p->x - 1,p->y)){
+                    move_effect("fight",p,map,p->x - 1,p->y);
+                }
+                if(is_create_password(map,p->x - 1,p->y)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1110,7 +1146,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x - 1,p->y)){
                     if(is_password_door(map,p->x - 1,p->y)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1145,8 +1181,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x + 1,p->y)){
                     move_effect("gold",p,map,p->x + 1,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x + 1,p->y)){
+                    move_effect("master",p,map,p->x + 1,p->y);
+                }
+                if(is_fight_room(map,p->x + 1,p->y)){
+                    move_effect("fight",p,map,p->x + 1,p->y);
+                }
+                if(is_create_password(map,p->x + 1,p->y)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1168,7 +1210,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x + 1,p->y)){
                     if(is_password_door(map,p->x + 1,p->y)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1203,8 +1245,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x + 1,p->y - 1)){
                     move_effect("gold",p,map,p->x + 1,p->y - 1);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x + 1,p->y - 1)){
+                    move_effect("master",p,map,p->x + 1,p->y - 1);
+                }
+                if(is_fight_room(map,p->x + 1,p->y - 1)){
+                    move_effect("fight",p,map,p->x + 1,p->y - 1);
+                }
+                if(is_create_password(map,p->x + 1,p->y - 1)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1228,7 +1276,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x + 1,p->y - 1)){
                     if(is_password_door(map,p->x + 1,p->y - 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1265,8 +1313,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x - 1,p->y - 1)){
                     move_effect("gold",p,map,p->x - 1,p->y - 1);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x - 1,p->y - 1)){
+                    move_effect("master",p,map,p->x - 1,p->y - 1);
+                }
+                if(is_fight_room(map,p->x - 1,p->y - 1)){
+                    move_effect("fight",p,map,p->x - 1,p->y - 1);
+                }
+                if(is_create_password(map,p->x - 1,p->y - 1)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1290,7 +1344,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x - 1,p->y - 1)){
                     if(is_password_door(map,p->x - 1,p->y - 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1327,8 +1381,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x + 1,p->y + 1)){
                     move_effect("gold",p,map,p->x + 1,p->y + 1);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x + 1,p->y + 1)){
+                    move_effect("master",p,map,p->x + 1,p->y + 1);
+                }
+                if(is_fight_room(map,p->x + 1,p->y + 1)){
+                    move_effect("fight",p,map,p->x + 1,p->y + 1);
+                }
+                if(is_create_password(map,p->x + 1,p->y + 1)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1352,7 +1412,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x + 1,p->y + 1)){
                     if(is_password_door(map,p->x + 1,p->y + 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1389,8 +1449,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x - 1,p->y + 1)){
                     move_effect("gold",p,map,p->x - 1,p->y + 1);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x - 1,p->y + 1)){
+                    move_effect("master",p,map,p->x - 1,p->y + 1);
+                }
+                if(is_fight_room(map,p->x - 1,p->y + 1)){
+                    move_effect("fight",p,map,p->x - 1,p->y + 1);
+                }
+                if(is_create_password(map,p->x - 1,p->y + 1)){
+                    create_password(map,time_start);
                 }
                 if(is_trap(map,p->x,p->y)){
                     mvprintw(p->y,p->x,"^");
@@ -1414,7 +1480,7 @@ void move_player(struct Map *map,struct Player *p){
                 }
                 if(is_door(map,p->x - 1,p->y + 1)){
                     if(is_password_door(map,p->x - 1,p->y + 1)){
-                        int resualt = panel(p);
+                        int resualt = panel(p,map);
                         if(resualt){
                             mvprintw(p->y,p->x," ");
                             refresh();
@@ -1458,8 +1524,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1498,8 +1570,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1538,8 +1616,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1577,8 +1661,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1617,8 +1707,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1659,8 +1755,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1701,8 +1803,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -1743,8 +1851,14 @@ void move_player(struct Map *map,struct Player *p){
                 if(is_gold(map,p->x,p->y)){
                     move_effect("gold",p,map,p->x,p->y);
                 }
-                if(is_master_key(map,p->x,p->y - 1)){
-                    move_effect("master",p,map,p->x,p->y - 1);
+                if(is_master_key(map,p->x,p->y)){
+                    move_effect("master",p,map,p->x,p->y);
+                }
+                if(is_fight_room(map,p->x,p->y)){
+                    move_effect("fight",p,map,p->x,p->y);
+                }
+                if(is_create_password(map,p->x,p->y)){
+                    create_password(map,time_start);
                 }
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -2150,6 +2264,16 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         p->have_master_key = 1;
         f_master_key(map,x,y);
     }
+    if(!strcmp(state,"fight")){
+        move(1,0);
+        printw("You will enter to fight room");
+        refresh();
+        sleep(2);
+        move(1,0);
+        clrtoeol();
+        f_fight(map,x,y);
+        //Fightroom
+    }
 }
 
 void f_gold(struct Map *map,int x, int y){
@@ -2237,6 +2361,12 @@ void f_master_key(struct Map *map,int x, int y){
     return;
 }
 
+void f_fight(struct Map *map,int x,int y){
+    map->x_fight_room = 0;
+    map->y_fight_room = 0;
+    return;
+}
+
 int is_password_door(struct Map *map,int x, int y){
     for(int i = 0; i < map->number_of_rooms; i++){
         if(i == map->number_Password_Doors_room){
@@ -2255,40 +2385,133 @@ int is_fight_room(struct Map *map,int x, int y){
     return 0;
 }
 
-int panel(struct Player* p){
-    move(0,60);
+int is_create_password(struct Map *map,int x,int y){
+    if(map->x_create_paasword == x && map->y_create_paasword == y){
+        return 1;
+    }
+    return 0;
+}
+
+
+int panel(struct Player* p,struct Map *map){
+    move(1,70);
     printw("make your chice:");
-    move(1,60);
-    printw("1.Use Mater Key  2.Enter last password  3.Exit");
+    move(2,70);
+    printw("t.Use Mater Key  y.Enter last password  u.Exit");
     int choice;
     choice = getch();
-    if(choice == 1){
+    if(choice == 't'){
         if(p->have_master_key){
-            move(0,60);
+            move(1,70);
             clrtoeol();
-            move(1,60);
+            move(2,70);
             clrtoeol();
+            p->have_master_key = 0;
+            map->x_password_door = 0;
+            map->y_password_door = 0;
             return 1;
         }else{
-            move(3,60);
+            move(3,70);
             printw("You don have master key");
-            move(0,60);
+            sleep(2);
+            move(1,70);
             clrtoeol();
-            move(1,60);
+            move(2,70);
             clrtoeol();
-            move(3,60);
+            move(3,70);
             clrtoeol();
             return 0;
         }
     }
-    if(choice == 2){
-
+    if(choice == 'y'){
+        move(3,70);
+        printw("Enter The password");
+        move(4,70);
+        int password;
+        nocbreak();
+        echo();
+        scanw("%d",&password);
+        start_color();
+        init_pair(1,COLOR_YELLOW,COLOR_BLACK);
+        init_pair(2,COLOR_RED,COLOR_BLACK);
+        for(int i = 0; i < 3;i++){
+            if(map->last_password == password){
+                move(1,70);
+                clrtoeol();
+                move(2,70);
+                clrtoeol();
+                move(3,70);
+                clrtoeol();
+                move(4,70);
+                clrtoeol();
+                cbreak();
+                noecho();
+                map->x_password_door = 0;
+                map->y_password_door = 0;
+                return 1;
+            }else{
+                if(i == 0){
+                    move(4,70);
+                    clrtoeol();
+                    attron(COLOR_PAIR(1));
+                    mvprintw(5,70,"Wrong password!");
+                    attroff(COLOR_PAIR(1));
+                    sleep(1);
+                    move(5,70);
+                    clrtoeol();
+                    move(4,70);
+                    scanw("%d",&password);
+                }
+                if(i == 1){
+                    move(4,70);
+                    clrtoeol();
+                    attron(COLOR_PAIR(2));
+                    mvprintw(5,70,"Wrong password!");
+                    attroff(COLOR_PAIR(2));
+                    sleep(1);
+                    move(5,70);
+                    clrtoeol();
+                    move(4,70);
+                    scanw("%d",&password);
+                }
+                if(i == 2){
+                    move(0,70);
+                    clrtoeol();
+                    move(1,70);
+                    clrtoeol();
+                    move(3,70);
+                    clrtoeol();
+                    move(4,70);
+                    clrtoeol();
+                    cbreak();
+                    noecho();
+                    return 0;
+                }
+            }
+        }
     }
-    if(choice == 3){
+    if(choice == 'u'){
         move(0,60);
         clrtoeol();
         move(1,60);
         clrtoeol();
         return 0;
     }
+    move(0,60);
+    clrtoeol();
+    move(1,60);
+    clrtoeol();
+    move(3,60);
+    clrtoeol();
+    move(4,6);
+    clrtoeol();
+    return 0;
+}
+
+void create_password(struct Map *map,time_t time_start){
+    int password = deciphering();
+    map->last_password = password;
+    move(0,60);
+    printw("The password: %d",password);
+    time(&time_start);
 }
