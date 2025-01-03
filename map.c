@@ -149,6 +149,7 @@ int is_password_door(struct Map *map,int x, int y);
 int is_fight_room(struct Map *map,int x, int y);
 void f_fight(struct Map *map,int x,int y);
 int is_create_password(struct Map *map,int x,int y);
+int is_secret_door(struct Map *map,int x, int y);
 void create_password(struct Map *map,time_t time_start);
 int panel(struct Player* p,struct Map *map);
 void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start);
@@ -1296,96 +1297,98 @@ int is_create_password(struct Map *map,int x,int y){
     return 0;
 }
 
-
-int panel(struct Player* p,struct Map *map){
-    move(1,70);
+int panel(struct Player* p, struct Map *map) {
+    start_color();
+    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(2, COLOR_RED, COLOR_BLACK);
+    move(1, 70);
     printw("make your chice:");
-    move(2,70);
+    move(2, 70);
     printw("t.Use Mater Key  y.Enter last password  u.Exit");
     int choice;
     choice = getch();
-    if(choice == 't'){
-        if(p->have_master_key){
-            move(1,70);
+    if (choice == 't') {
+        if (p->have_master_key) {
+            move(1, 70);
             clrtoeol();
-            move(2,70);
+            move(2, 70);
             clrtoeol();
             p->have_master_key = 0;
             map->x_password_door = 0;
             map->y_password_door = 0;
             return 1;
-        }else{
-            move(3,70);
-            printw("You don have master key");
+        } else {
+            move(3, 70);
+            printw("You don't have master key");
             sleep(2);
-            move(1,70);
+            move(1, 70);
             clrtoeol();
-            move(2,70);
+            move(2, 70);
             clrtoeol();
-            move(3,70);
+            move(3, 70);
             clrtoeol();
             return 0;
         }
     }
-    if(choice == 'y'){
-        move(3,70);
+
+    if (choice == 'y') {
+        move(3, 70);
         printw("Enter The password");
-        move(4,70);
+
+        move(4, 70);
         int password;
         nocbreak();
         echo();
-        scanw("%d",&password);
-        start_color();
-        init_pair(1,COLOR_YELLOW,COLOR_BLACK);
-        init_pair(2,COLOR_RED,COLOR_BLACK);
-        for(int i = 0; i < 3;i++){
-            if(map->last_password == password){
-                move(1,70);
+        scanw("%d", &password);
+
+        for (int i = 0; i < 3; i++) {
+            if (map->last_password == password) {
+                move(1, 70);
                 clrtoeol();
-                move(2,70);
+                move(2, 70);
                 clrtoeol();
-                move(3,70);
+                move(3, 70);
                 clrtoeol();
-                move(4,70);
+                move(4, 70);
                 clrtoeol();
                 cbreak();
                 noecho();
                 map->x_password_door = 0;
                 map->y_password_door = 0;
                 return 1;
-            }else{
-                if(i == 0){
-                    move(4,70);
+            } else {
+                if (i == 0) {
+                    move(4, 70);
                     clrtoeol();
-                    attron(COLOR_PAIR(1));
-                    mvprintw(5,70,"Wrong password!");
-                    attroff(COLOR_PAIR(1));
+                    attron(COLOR_PAIR(1));  // Set color pair to yellow
+                    mvprintw(5, 70, "Wrong password!");
+                    attroff(COLOR_PAIR(1)); // Turn off yellow color
                     sleep(1);
-                    move(5,70);
+                    move(5, 70);
                     clrtoeol();
-                    move(4,70);
-                    scanw("%d",&password);
+                    move(4, 70);
+                    scanw("%d", &password);
                 }
-                if(i == 1){
-                    move(4,70);
+                if (i == 1) {
+                    move(4, 70);
                     clrtoeol();
-                    attron(COLOR_PAIR(2));
-                    mvprintw(5,70,"Wrong password!");
-                    attroff(COLOR_PAIR(2));
+                    attron(COLOR_PAIR(2));  // Set color pair to red
+                    mvprintw(5, 70, "Wrong password!");
+                    attroff(COLOR_PAIR(2)); // Turn off red color
                     sleep(1);
-                    move(5,70);
+                    move(5, 70);
                     clrtoeol();
-                    move(4,70);
-                    scanw("%d",&password);
+                    move(4, 70);
+                    scanw("%d", &password);
                 }
-                if(i == 2){
-                    move(0,70);
+                if (i == 2) {
+                    move(0, 70);
                     clrtoeol();
-                    move(1,70);
+                    move(1, 70);
                     clrtoeol();
-                    move(3,70);
+                    move(3, 70);
                     clrtoeol();
-                    move(4,70);
+                    move(4, 70);
                     clrtoeol();
                     cbreak();
                     noecho();
@@ -1394,20 +1397,24 @@ int panel(struct Player* p,struct Map *map){
             }
         }
     }
-    if(choice == 'u'){
-        move(0,60);
+
+    if (choice == 'u') {
+        move(1, 70);
         clrtoeol();
-        move(1,60);
+        move(2, 70);
         clrtoeol();
         return 0;
     }
-    move(0,60);
+
+    move(1, 70);
     clrtoeol();
-    move(1,60);
+    move(2, 70);
     clrtoeol();
-    move(3,60);
+    move(3, 70);
     clrtoeol();
-    move(4,6);
+    move(4, 70);
+    clrtoeol();
+    move(5, 70);
     clrtoeol();
     return 0;
 }
@@ -1443,12 +1450,37 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         if(is_fight_room(map,p->x + second_x,p->y + second_y)){
             move_effect("fight",p,map,p->x + second_x,p->y + second_y);
         }
-        if(is_create_password(map,p->x + second_x,p->y + second_y)){
+        if(is_create_password(map,p->x + second_x,p->y + second_y) && (map->x_password_door != 0 && map->y_password_door != 0)){
             create_password(map,time_start);
         }
         if(is_trap(map,p->x,p->y)){
             mvprintw(p->y,p->x,"^");
             refresh();
+        }
+        else if(is_door(map,p->x,p->y) && !is_password_door(map,p->x,p->y) && !is_secret_door(map,p->x,p->y)){
+            mvprintw(p->y,p->x,"+");
+            refresh();
+        }
+        else if(is_secret_door(map,p->x,p->y)){
+            mvprintw(p->y,p->x,"?");
+            refresh();
+        }
+        else if(is_password_door(map,p->x,p->y)){
+            if(map->x_password_door == 0 && map->y_password_door == 0){
+                start_color();
+                init_pair(1,COLOR_GREEN,COLOR_WHITE);
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"@");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }else{
+                start_color();
+                init_pair(1,COLOR_RED,COLOR_WHITE);
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"@");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
         }
         else{
             mvprintw(p->y,p->x," ");
@@ -1460,25 +1492,90 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         refresh();
     }if(!is_not_wall(map,p->x + second_x,p->y + second_y)){
         if(is_corridor(map,p->x + second_x,p->y + second_y)){
-            mvprintw(p->y,p->x,"#");
-            refresh();
-            p->y += second_y;
-            p->x += second_x;
-            mvprintw(p->y,p->x,"P");
-            refresh();
-        }
-        if(is_door(map,p->x + second_x,p->y + second_y)){
-            if(is_password_door(map,p->x + second_x,p->y + second_y)){
-                int resualt = panel(p,map);
-                if(resualt){
-                    mvprintw(p->y,p->x," ");
+            if(is_corridor(map,p->x,p->y)){
+                mvprintw(p->y,p->x,"#");
+                refresh();
+                p->y += second_y;
+                p->x += second_x;
+                mvprintw(p->y,p->x,"P");
+                refresh();
+            }
+            else if(is_door(map,p->x,p->y) && !is_password_door(map,p->x,p->y) && !is_secret_door(map,p->x,p->y)){
+                mvprintw(p->y,p->x,"+");
+                refresh();
+                p->y += second_y;
+                p->x += second_x;
+                mvprintw(p->y,p->x,"P");
+                refresh();
+            }
+            else if(is_secret_door(map,p->x,p->y)){
+                mvprintw(p->y,p->x,"?");
+                refresh();
+                p->y += second_y;
+                p->x += second_x;
+                mvprintw(p->y,p->x,"P");
+                refresh();
+            }
+            else if(is_password_door(map,p->x,p->y)){
+                if(map->x_password_door == 0 && map->y_password_door == 0){
+                    start_color();
+                    init_pair(1,COLOR_GREEN,COLOR_WHITE);
+                    attron(COLOR_PAIR(1));
+                    mvprintw(p->y,p->x,"@");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
+                    p->y += second_y;
+                    p->x += second_x;
+                    mvprintw(p->y,p->x,"P");
+                    refresh();
+                }else{
+                    start_color();
+                    init_pair(1,COLOR_RED,COLOR_WHITE);
+                    attron(COLOR_PAIR(1));
+                    mvprintw(p->y,p->x,"@");
+                    attroff(COLOR_PAIR(1));
                     refresh();
                     p->y += second_y;
                     p->x += second_x;
                     mvprintw(p->y,p->x,"P");
                     refresh();
                 }
-            }else{
+            }
+        }
+        if(is_door(map,p->x + second_x,p->y + second_y)){
+            if(is_password_door(map,p->x + second_x,p->y + second_y) && (map->x_create_paasword != 0 && map->y_password_door != 0)){
+                int resualt = panel(p,map);
+                if(resualt){
+                    if(is_corridor(map,p->x,p->y)){
+                        mvprintw(p->y,p->x,"#");
+                        refresh();
+                        p->y += second_y;
+                        p->x += second_x;
+                        mvprintw(p->y,p->x,"P");
+                        refresh();
+                    }else{
+                        start_color();
+                        init_pair(1,COLOR_GREEN,COLOR_WHITE);
+                        attron(COLOR_PAIR(1));
+                        mvprintw(p->y,p->x,"@");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                        p->y += second_y;
+                        p->x += second_x;
+                        mvprintw(p->y,p->x,"P");
+                        refresh();
+                    }
+                }
+            }
+            if(is_corridor(map,p->x,p->y)){
+                mvprintw(p->y,p->x,"#");
+                refresh();
+                p->y += second_y;
+                p->x += second_x;
+                mvprintw(p->y,p->x,"P");
+                refresh();
+            }
+            else{
                 mvprintw(p->y,p->x," ");
                 refresh();
                 p->y += second_y;
@@ -1529,11 +1626,35 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
     p->x += second_x;
     }
     if(is_corridor(map,x_before,y_before)){
-    mvprintw(y_before,x_before,"#");
-    refresh();
-    }else if(is_door(map,x_before,y_before)){
-    mvprintw(y_before,x_before," ");
-    refresh();
+        mvprintw(y_before,x_before,"#");
+        refresh();
+    }
+    else if(is_door(map,x_before,y_before) && !is_password_door(map,x_before,y_before) && !is_secret_door(map,x_before,y_before)){
+        mvprintw(y_before,x_before,"+");
+        refresh();
+    }
+    else if(is_secret_door(map,x_before,y_before)){
+        mvprintw(y_before,x_before,"?");
+        refresh();
+    }
+    else if(is_password_door(map,x_before,y_before)){
+        if(map->x_password_door == 0 && map->y_password_door == 0){
+            start_color();
+            init_pair(1,COLOR_GREEN,COLOR_WHITE);
+            attron(COLOR_PAIR(1));
+            mvprintw(y_before,x_before,"@");
+            attroff(COLOR_PAIR(1));
+            refresh();
+        }else{
+            start_color();
+            init_pair(1,COLOR_RED,COLOR_WHITE);
+            attron(COLOR_PAIR(1));
+            mvprintw(y_before,x_before,"@");
+            attroff(COLOR_PAIR(1));
+            refresh();
+        }
+    }else{
+
     }
     mvprintw(p->y,p->x,"P");
     refresh();
@@ -1544,10 +1665,14 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         if(is_trap(map,p->x + second_x,p->y + second_y)){
             move_effect("trap",p,map,p->x + second_x,p->y + second_y);
         }
+        if(is_fight_room(map,p->x + second_x,p->y + second_y)){
+            move_effect("fight",p,map,p->x,p->y);
+        }
         if(is_trap(map,p->x,p->y)){
             mvprintw(p->y,p->x,"^");
             refresh();
-        }else{
+        }
+        else{
             mvprintw(p->y,p->x," ");
             refresh();
         }
@@ -1573,4 +1698,15 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
             refresh();
         }
     }
+}
+
+int is_secret_door(struct Map *map,int x, int y){
+    for(int i = 0; i < map->number_of_rooms; i++){
+        if(map->rooms[i].doors[0].is_secret_door){
+            if((map->rooms[i].doors[0].x_door == x && map->rooms[i].doors[0].y_door == y) || (map->rooms[i].doors[1].x_door == x && map->rooms[i].doors[1].y_door == y)){
+                return 1;
+            }
+        }
+    }
+    return 0;
 }
