@@ -7,22 +7,19 @@ int control_password(char password[20]);
 void create_new_player();
 int valid_name_and_password(char name[20], char password[20]);
 void enter_player();
-// void menu_before_game();
-// void create_new_game();
-// void seting_menu();
-// void profile();
+void create_new_game(char name[20]);
+void continue_last_game(char name[20]);
+void seting_menu(char name[20]);
+void profile(char name[20]);
 void table_of_players();
 void menus();
-// void players_menus();
+void players_menus(char name[20]);
+void guest();
 
 
 int main(){
     initscr();
 	while (1){
-		//create_new_player();
-		//enter_player();
-		//before_game();
-		//table_of_players();
 		menus();
 		getch();
 		break;
@@ -30,7 +27,6 @@ int main(){
 	endwin();
 	return 0;
 }
-
 
 void create_new_player(){
 	clear();
@@ -79,10 +75,10 @@ void create_new_player(){
 	int number_of_game = 0;
 	int time = 0;
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,score,gold,number_of_game,time);
+	fclose(players);
 	getch();
 	return;
 }
-
 
 int control_name(char name[20]) {
 	FILE* ptr = fopen("Players.txt", "r");
@@ -101,7 +97,6 @@ int control_name(char name[20]) {
 	fclose(ptr); 
 	return 1; 
 }
-
 
 int control_password(char password[20]){
 	int len_password = strlen(password);
@@ -138,7 +133,6 @@ int control_password(char password[20]){
 	return 0;
 }
 
-
 int control_email(char email[20]) {
     int pointer = 0;
     while (email[pointer] != '@') {
@@ -159,8 +153,7 @@ int control_email(char email[20]) {
     		clrtoeol();
 		}
         return 0;
-    }
-    
+    }    
     int point_at = pointer;
     pointer++;
     while (email[pointer] != '.') {
@@ -181,14 +174,12 @@ int control_email(char email[20]) {
     		clrtoeol();
 		}
         return 0;
-    }
-    
+    }    
     int point_dot = pointer;
     pointer++;
     while (email[pointer] != '\0') {
         pointer++;
-    }
-    
+    }    
     if (pointer == point_dot + 1) {
         mvprintw(10, 10, "Not valid!");
     	if (getch()) {
@@ -199,7 +190,6 @@ int control_email(char email[20]) {
     }
     return 1;
 }
-
 
 int valid_name_and_password(char name[20], char password[20]) {
     FILE* players = fopen("Players.txt", "r");
@@ -220,45 +210,102 @@ int valid_name_and_password(char name[20], char password[20]) {
     return 0;
 }
 
-
 void enter_player() {
     clear();
-	refresh();
-	move(0,0);
-	printw("Press f1 to continue or f2 to exit");
-	move(1,0);
-	printw("Name: ");
-    char name[20];
-	move(1,7);
-    scanw("%s", name);
-	move(2,0);
-    printw("Password: ");
-    char password[20];
-	move(2,11);
-    scanw("%s", password);
-
-    while (!valid_name_and_password(name, password)) {
-        move(1, 0);
-        clrtoeol();
-        printw("Name: ");
-		move(1,7);
-        scanw("%s", name);
-        move(2, 0);
-        clrtoeol();
-        printw("Password: ");
-		move(2,11);
-        scanw("%s", password);
+	label:
+    const char *choices[3] = {
+        "sign in",
+        "Guest",
+        "back"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(5,40,4,4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 3; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+				if(current_item == 0){
+					current_item = 3 - 1;
+				}else{
+					current_item -= 1;
+				}
+                break;
+            case KEY_DOWN:
+				if(current_item == 0 || current_item == 1){
+					current_item += 1;
+				}else{
+					current_item = 0;
+				}
+                break;
+            case 10:
+                refresh();
+				clear();
+				nocbreak();
+    			echo();
+    			curs_set(1);
+				if(current_item == 0){
+					refresh();
+					clear();
+					move(1,0);
+					printw("Name: ");
+					char name[20];
+					move(1,7);
+					scanw("%s", name);
+					move(2,0);
+					printw("Password: ");
+					char password[20];
+					move(2,11);
+					scanw("%s", password);
+					while (!valid_name_and_password(name, password)) {
+						move(1, 0);
+						clrtoeol();
+						printw("Name: ");
+						move(1,7);
+						scanw("%s", name);
+						move(2, 0);
+						clrtoeol();
+						printw("Password: ");
+						move(2,11);
+						scanw("%s", password);
+					}
+					getch();
+					players_menus(name);
+					clear();
+					refresh();
+					goto label;
+				}
+				if(current_item == 1){
+					guest();
+					clear();
+					refresh();
+					goto label;
+				}
+				if(current_item == 2){
+                	return;
+				}
+                break;
+        }
     }
-	getch();
-	char ch = getch();
-	if(ch == KEY_F(1)){
-		//players_menus();
-		return;
-	}
-	if(ch == KEY_F(2)){
-		return;
-	}
-    //ba tavajo be bazikon bayad be file makhsose o beravim
 }
 
 
@@ -348,6 +395,7 @@ void table_of_players() {
 
 
 void menus(){
+	clear();
 	label:
     const char *choices[3] = {
         "create new player",
@@ -425,11 +473,11 @@ void menus(){
     }
 }
 
-
-void players_menus(){
-	const char *choices[3] = {
-        "menu_before_game",
-        "seting_menu",
+void players_menus(char name[20]){
+	const char *choices[4] = {
+        "create new game",
+		"continue last game",
+        "seting menu",
         "profile"
     };
     cbreak();
@@ -443,7 +491,7 @@ void players_menus(){
     int current_item = 0;
     int ch;
     while (1) {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             if (i == current_item) {
                 wattron(menu, A_BOLD | COLOR_PAIR(2));
                 mvwprintw(menu, i + 1, 1, "%s", choices[i]);
@@ -459,13 +507,13 @@ void players_menus(){
         switch (ch) {
             case KEY_UP:
 				if(current_item == 0){
-					current_item = 3 - 1;
+					current_item = 4 - 1;
 				}else{
 					current_item -= 1;
 				}
                 break;
             case KEY_DOWN:
-				if(current_item == 0 || current_item == 1){
+				if(current_item == 0 || current_item == 1 || current_item == 2){
 					current_item += 1;
 				}else{
 					current_item = 0;
@@ -475,17 +523,22 @@ void players_menus(){
                 refresh();
 				clear();
 				if(current_item == 0){
-					//menu_before_game();
+					create_new_game(name);
 					clear();
 					refresh();
 				}
 				if(current_item == 1){
-					//seting_menu();
+					continue_last_game(name);
 					clear();
 					refresh();
 				}
 				if(current_item == 2){
-					//profile();
+					seting_menu(name);
+					clear();
+					refresh();
+				}
+				if(current_item == 3){
+					profile(name);
 					clear();
 					refresh();
 				}
@@ -496,3 +549,12 @@ void players_menus(){
         }
     }	
 }
+void create_new_game(char name[20]){}
+
+void continue_last_game(char name[20]){}
+
+void seting_menu(char name[20]){}
+
+void profile(char name[20]){}
+
+void guest(){}
