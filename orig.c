@@ -1709,6 +1709,9 @@ void create_password(struct Map *map,time_t time_start){
 }
 
 void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
+    start_color();
+    init_pair(1,COLOR_RED,COLOR_BLACK);
+    init_pair(2,COLOR_GREEN,COLOR_BLACK);
     if(is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y)){
         if(is_food(map,p->x + second_x,p->y + second_y)){
             move_effect("food",p,map,p->x + second_x,p->y + second_y);
@@ -1768,15 +1771,11 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         }
         else if(is_password_door(map,p->x,p->y)){
             if(map->x_password_door == 0 && map->y_password_door == 0){
-                start_color();
-                init_pair(1,COLOR_GREEN,COLOR_WHITE);
-                attron(COLOR_PAIR(1));
+                attron(COLOR_PAIR(2));
                 mvprintw(p->y,p->x,"@");
-                attroff(COLOR_PAIR(1));
+                attroff(COLOR_PAIR(2));
                 refresh();
             }else{
-                start_color();
-                init_pair(1,COLOR_RED,COLOR_WHITE);
                 attron(COLOR_PAIR(1));
                 mvprintw(p->y,p->x,"@");
                 attroff(COLOR_PAIR(1));
@@ -1819,19 +1818,15 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             }
             else if(is_password_door(map,p->x,p->y)){
                 if(map->x_password_door == 0 && map->y_password_door == 0){
-                    start_color();
-                    init_pair(1,COLOR_GREEN,COLOR_WHITE);
-                    attron(COLOR_PAIR(1));
+                    attron(COLOR_PAIR(2));
                     mvprintw(p->y,p->x,"@");
-                    attroff(COLOR_PAIR(1));
+                    attroff(COLOR_PAIR(2));
                     refresh();
                     p->y += second_y;
                     p->x += second_x;
                     mvprintw(p->y,p->x,"P");
                     refresh();
                 }else{
-                    start_color();
-                    init_pair(1,COLOR_RED,COLOR_WHITE);
                     attron(COLOR_PAIR(1));
                     mvprintw(p->y,p->x,"@");
                     attroff(COLOR_PAIR(1));
@@ -1873,11 +1868,9 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                         mvprintw(p->y,p->x,"P");
                         refresh();
                     }else{
-                        start_color();
-                        init_pair(1,COLOR_GREEN,COLOR_WHITE);
-                        attron(COLOR_PAIR(1));
+                        attron(COLOR_PAIR(2));
                         mvprintw(p->y,p->x,"@");
-                        attroff(COLOR_PAIR(1));
+                        attroff(COLOR_PAIR(2));
                         refresh();
                         p->y += second_y;
                         p->x += second_x;
@@ -2125,23 +2118,47 @@ void print_corridor(struct Map *map){
 }
 
 void print_room(struct Map *map){
+    start_color();
+    init_pair(1,COLOR_RED,COLOR_BLACK);
+    init_pair(2,COLOR_GREEN,COLOR_BLACK);
     for(int i = 0; i < map->number_of_rooms; i++){
         if(map->rooms[i].is_seen){
             int x_1 = map->rooms[i].x;  
             int x_2 = map->rooms[i].x + map->rooms[i].size;  
             int y_1 = map->rooms[i].y;  
             int y_3 = map->rooms[i].y + map->rooms[i].size;  
-            for (int j = 0; j <= map->rooms[i].size; j++) {  
-                move(y_1, x_1 + j);
-                printw("_");  
-                move(y_3, x_1 + j);  
-                printw("_");  
-            }  
-            for (int j = 0; j < map->rooms[i].size; j++){  
-                move(y_1 + j + 1, x_1);  
-                printw("|");
-                move(y_1 + j + 1, x_2);  
-                printw("|");  
+            if(i == map->number_Spell_room){
+                for (int j = 0; j <= map->rooms[i].size; j++) {  
+                    attron(COLOR_PAIR(1));
+                    move(y_1, x_1 + j);
+                    printw("_");  
+                    move(y_3, x_1 + j);  
+                    printw("_");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
+                }  
+                for (int j = 0; j < map->rooms[i].size; j++){  
+                    attron(COLOR_PAIR(1));
+                    move(y_1 + j + 1, x_1);  
+                    printw("|");
+                    move(y_1 + j + 1, x_2);  
+                    printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
+                }
+            }else{
+                for (int j = 0; j <= map->rooms[i].size; j++) {  
+                    move(y_1, x_1 + j);
+                    printw("_");  
+                    move(y_3, x_1 + j);  
+                    printw("_");  
+                }  
+                for (int j = 0; j < map->rooms[i].size; j++){  
+                    move(y_1 + j + 1, x_1);  
+                    printw("|");
+                    move(y_1 + j + 1, x_2);  
+                    printw("|");  
+                }
             }
             for(int j = 0; j < 2; j++){
                 mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"+");
@@ -2150,15 +2167,13 @@ void print_room(struct Map *map){
             if(i == map->number_Password_Doors_room){
                 if(map->x_password_door == 0 && map->y_password_door == 0){
                     start_color();
-                    init_pair(1,COLOR_GREEN,COLOR_WHITE);
-                    attron(COLOR_PAIR(1));
+                    attron(COLOR_PAIR(2));
                     mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
-                    attroff(COLOR_PAIR(1));
+                    attroff(COLOR_PAIR(2));
                     mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
                     refresh();
                 }else{
                     start_color();
-                    init_pair(1,COLOR_RED,COLOR_WHITE);
                     attron(COLOR_PAIR(1));
                     mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
                     attroff(COLOR_PAIR(1));
@@ -2168,52 +2183,76 @@ void print_room(struct Map *map){
             }
             if(i == map->number_Spell_room){
                 if(i == 0){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("_");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 1){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 2){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("_");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 3){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 4){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 5){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("_");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 6){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("|");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
                 if(i == 7){
+                    attron(COLOR_PAIR(1));
                     move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
                     printw("_");
                     move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
                     printw("|");
+                    attroff(COLOR_PAIR(1));
+                    refresh();
                 }
             }
             for(int j = 0; j < 3; j++){
