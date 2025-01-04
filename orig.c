@@ -1168,6 +1168,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             refresh();
                         }
                     }
+                    if(map->number_room_fight_room == 1 || map->number_room_fight_room == 2){
+                        mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                    }
                     if(map->number_Spell_room == 1 || map->number_Spell_room == 2){
                         mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                         mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1181,6 +1184,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             refresh();
                         }
                     }
+                    if(map->number_room_fight_room == 0 || map->number_room_fight_room == 4){
+                        mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                    }
                     if(map->number_Spell_room == 0 || map->number_Spell_room == 4){
                         mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                         mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1193,6 +1199,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             mvprintw(map->traps[i].y_trap,map->traps[i].x_trap,"^");
                             refresh();
                         }
+                    }
+                    if(map->number_room_fight_room == 0 || map->number_room_fight_room == 3){
+                        mvprintw(map->y_fight_room,map->y_fight_room,"F");
                     }
                     if(map->number_Spell_room == 0 || map->number_Spell_room == 3){
                         mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
@@ -1208,6 +1217,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 refresh();
                             }
                         }
+                        if(map->number_room_fight_room == 2 || map->number_room_fight_room == 6){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                        }
                         if(map->number_Spell_room == 2 || map->number_Spell_room == 6){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                             mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1219,6 +1231,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 mvprintw(map->traps[i].y_trap,map->traps[i].x_trap,"^");
                                 refresh();
                             }
+                        }
+                        if(map->number_room_fight_room == 2 || map->number_room_fight_room == 5){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
                         }
                         if(map->number_Spell_room == 2 || map->number_Spell_room == 5){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
@@ -1234,6 +1249,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             refresh();
                         }
                     }
+                    if(map->number_room_fight_room == 1 || map->number_room_fight_room == 5){
+                        mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                    }
                     if(map->number_Spell_room == 1 || map->number_Spell_room == 5){
                         mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                         mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1248,6 +1266,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 refresh();
                             }
                         }
+                        if(map->number_room_fight_room == 4 || map->number_room_fight_room == 3){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                        }
                         if(map->number_Spell_room == 4 || map->number_Spell_room == 3){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                             mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1261,6 +1282,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 refresh();
                             }
                         }
+                        if(map->number_room_fight_room == 4 || map->number_room_fight_room == 6){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                        }
                         if(map->number_Spell_room == 4 || map->number_Spell_room == 6){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                             mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1273,6 +1297,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 mvprintw(map->traps[i].y_trap,map->traps[i].x_trap,"^");
                                 refresh();
                             }
+                        }
+                        if(map->number_room_fight_room == 4 || map->number_room_fight_room == 7){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
                         }
                         if(map->number_Spell_room == 4 || map->number_Spell_room == 7){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
@@ -1289,6 +1316,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 refresh();
                             }
                         }
+                        if(map->number_room_fight_room == 3 || map->number_room_fight_room == 5){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
+                        }
                         if(map->number_Spell_room == 3 || map->number_Spell_room == 5){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
                             mvprintw(map->rooms[map->number_Spell_room].doors[1].y_door,map->rooms[map->number_Spell_room].doors[1].x_door,"?");
@@ -1301,6 +1331,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                                 mvprintw(map->traps[i].y_trap,map->traps[i].x_trap,"^");
                                 refresh();
                             }
+                        }
+                        if(map->number_room_fight_room == 3 || map->number_room_fight_room == 7){
+                            mvprintw(map->y_fight_room,map->y_fight_room,"F");
                         }
                         if(map->number_Spell_room == 3 || map->number_Spell_room == 7){
                             mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
@@ -1315,6 +1348,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             mvprintw(map->traps[i].y_trap,map->traps[i].x_trap,"^");
                             refresh();
                         }
+                    }
+                    if(map->number_room_fight_room == 5 || map->number_room_fight_room == 6){
+                        mvprintw(map->y_fight_room,map->y_fight_room,"F");
                     }
                     if(map->number_Spell_room == 5 || map->number_Spell_room == 6){
                         mvprintw(map->rooms[map->number_Spell_room].doors[0].y_door,map->rooms[map->number_Spell_room].doors[0].x_door,"?");
