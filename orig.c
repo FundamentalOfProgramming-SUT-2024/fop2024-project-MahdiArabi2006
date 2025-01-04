@@ -192,6 +192,8 @@ void guest();
 void save_player(char filename[100], struct Player * p);
 void load_player(char filename[100], struct Player * p);
 int is_stair(struct Map *map,int x,int y);
+void fightroom(struct Player *p);
+void move_in_fightroom(struct Player *p);
 
 int main(){
     initscr();
@@ -1482,7 +1484,11 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         move(1,0);
         clrtoeol();
         f_fight(map,x,y);
-        //Fightroom
+        clear();
+        refresh();
+        fightroom(p);
+        move_player(map,p,p->last_map);
+        return;
     }
 }
 
@@ -1753,6 +1759,22 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             move_effect("master",p,map,p->x + second_x,p->y + second_y);
         }
         if(is_fight_room(map,p->x + second_x,p->y + second_y)){
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
             move_effect("fight",p,map,p->x + second_x,p->y + second_y);
         }
         if(is_create_password(map,p->x + second_x,p->y + second_y) && (map->x_password_door != 0 && map->y_password_door != 0)){
@@ -1923,6 +1945,22 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         move_effect("master",p,map,p->x,p->y);
     }
     if(is_fight_room(map,p->x,p->y)){
+        if(p->last_map == 1){
+            p->x_map1 = p->x;
+            p->y_map1 = p->y;
+        }
+        if(p->last_map == 2){
+            p->x_map2 = p->x;
+            p->y_map2 = p->y;
+        }
+        if(p->last_map == 3){
+            p->x_map3 = p->x;
+            p->y_map3 = p->y;
+        }
+        if(p->last_map == 4){
+            p->x_map4 = p->x;
+            p->y_map4 = p->y;
+        }
         move_effect("fight",p,map,p->x,p->y);
     }
     if(is_create_password(map,p->x,p->y)){
@@ -2855,7 +2893,7 @@ void guest(){
     char name1[100] = "guest"; 
     char name2[100] = "guest"; 
     char name3[100] = "guest"; 
-    char name4[100] = "guest"; 
+    char name4[100] = "guest";
     generate_map(&game.maps[0],name1,1);
     generate_map(&game.maps[1],name2,2);
     generate_map(&game.maps[2],name3,3);
@@ -2887,4 +2925,31 @@ int is_stair(struct Map *map,int x,int y){
         return 1;
     }
     return 0;
+}
+
+void move_in_fightroom(struct Player *p){}
+
+void fightroom(struct Player *p){
+    int x_1 = 25;  
+    int x_2 = 25 + 20;  
+    int y_1 = 5;  
+    int y_3 = 5 + 20;  
+    for (int j = 0; j <= 20; j++) {  
+        move(y_1, x_1 + j);
+        printw("_");  
+        move(y_3, x_1 + j);  
+        printw("_");  
+    }  
+    for (int j = 0; j < 20; j++){  
+        move(y_1 + j + 1, x_1);  
+        printw("|");
+        move(y_1 + j + 1, x_2);  
+        printw("|");  
+    }
+    mvprintw(35,35,"P");
+    refresh();
+    sleep(5);
+    p->health -= 500;
+    clear();
+    return;
 }
