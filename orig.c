@@ -6,6 +6,21 @@
 #include <unistd.h>
 #include <string.h>
 int size = 0;
+const char* a = "🗱";//خنجر
+const char* b = "⚒️";//گرز
+const char* c = "🪄";//عصای جادویی
+const char* d = "➳";//تیر عادی
+const char* e = "🗡";//شمشیر
+const char* f = "🏺";//طلسم سلامتی
+const char* g = "🥣";//طلسم سرعت
+const char* h = "🧪";//طلسم آسیب
+const char* l = "🍞";//غذا
+const char* o = "🍕";//غذا اعلا
+const char* u = "🥗";//غذای جادویی
+const char* n = "🦠";//غذای فاسد
+const char* m = "🟡";//طلا
+const char* v = "⚫";//طلای سیاه
+const char* r = "△";
 
 struct Food{
     int x_food;
@@ -194,8 +209,13 @@ void load_player(char filename[100], struct Player * p);
 int is_stair(struct Map *map,int x,int y);
 void fightroom(struct Player *p);
 void move_in_fightroom(struct Player *p);
+void show_wepons(struct Player *p);
+void show_spells(struct Player *p);
+void show_foods(struct Player *p);
+void show_map(struct Map *map);
 
 int main(){
+    setlocale(LC_CTYPE, "");
     initscr();
     cbreak();  
     noecho();  
@@ -1360,6 +1380,98 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 }
             }
         }
+        if(c == 'E'){
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
+            clear();
+            refresh();
+            show_foods(p);
+            move_player(map,p,p->last_map);
+            return;
+        }
+        if(c == 'i'){
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
+            clear();
+            refresh();
+            show_wepons(p);
+            move_player(map,p,p->last_map);
+            return;
+        }
+        if(c == 'm'){
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
+            clear();
+            refresh();
+            show_map(map);
+            move_player(map,p,p->last_map);
+            return;
+        }
+        if(c == 't'){
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
+            clear();
+            refresh();
+            show_spells(p);
+            move_player(map,p,p->last_map);
+            return;
+        }
     }
 }
 
@@ -2121,6 +2233,7 @@ void print_room(struct Map *map){
     start_color();
     init_pair(1,COLOR_RED,COLOR_BLACK);
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
+    init_pair(3,COLOR_YELLOW,COLOR_BLACK);
     for(int i = 0; i < map->number_of_rooms; i++){
         if(map->rooms[i].is_seen){
             int x_1 = map->rooms[i].x;  
@@ -2256,23 +2369,64 @@ void print_room(struct Map *map){
                 }
             }
             for(int j = 0; j < 3; j++){
-                if(map->foods[j].number_room == i){
-                    mvprintw(map->foods[j].y_food,map->foods[j].x_food,"f");
+                if(map->foods[j].number_room == i && (map->foods[j].x_food != 0)){
+                    move(map->foods[j].y_food,map->foods[j].x_food);
+                    if(map->foods[j].type == 1){
+                        printw("%s",l);
+                    }
+                    if(map->foods[j].type == 2){
+                        printw("%s",o);
+                    }
+                    if(map->foods[j].type == 3){
+                        printw("%s",u);
+                    }
+                    if(map->foods[j].type == 4){
+                        printw("%s",n);
+                    }
                 }
             }
             for(int j = 0; j < 3; j++){
-                if(map->spells[j].number_room == i){
-                    mvprintw(map->spells[j].y_spell,map->spells[j].x_spell,"S");
+                if(map->spells[j].number_room == i && (map->spells[j].x_spell != 0)){
+                    move(map->spells[j].y_spell,map->spells[j].x_spell);
+                    if(map->spells[j].type == 1){
+                        printw("%s",f);
+                    }
+                    if(map->spells[j].type == 2){
+                        printw("%s",g);
+                    }
+                    if(map->spells[j].type == 3){
+                        printw("%s",h);
+                    }
                 }
             }
             for(int j = 0; j < 3; j++){
-                if(map->wepons[j].number_room == i){
-                    mvprintw(map->wepons[j].y_wepon,map->wepons[j].x_wepon,"W");
+                if(map->wepons[j].number_room == i && (map->wepons[j].x_wepon != 0)){
+                    move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
+                    if(map->wepons[j].type == 1){
+                        printw("%s",a);
+                    }
+                    if(map->wepons[j].type == 2){
+                        printw("%s",b);
+                    }
+                    if(map->wepons[j].type == 3){
+                        printw("%s",c);
+                    }
+                    if(map->wepons[j].type == 4){
+                        printw("%s",d);
+                    }
+                    if(map->wepons[j].type == 5){
+                        printw("%s",e);
+                    }
                 }
             }
             for(int j = 0; j < 3; j++){
-                if(map->golds[j].number_room == i){
-                    mvprintw(map->golds[j].y_gold,map->golds[j].x_gold,"G");
+                if(map->golds[j].number_room == i && (map->golds[j].x_gold != 0)){
+                    move(map->golds[j].y_gold,map->golds[j].x_gold);
+                    if(map->golds[j].is_black){
+                        printw("%s",v);
+                    }else{
+                        printw("%s",m);
+                    }
                 }
             }
             for(int j = 0; j < 3; j++){
@@ -2286,8 +2440,12 @@ void print_room(struct Map *map){
             if(map->number_Password_Doors_room == i){
                 mvprintw(map->y_create_paasword,map->x_create_paasword,"&");
             }
-            if(map->number_Master_Key_room == i){
-                mvprintw(map->y_Master_Key,map->x_Master_Key,"K");
+            if(map->number_Master_Key_room == i && (map->x_Master_Key != 0)){
+                move(map->y_Master_Key,map->x_Master_Key);
+                attron(COLOR_PAIR(3));
+                printw("%s",r);
+                attroff(COLOR_PAIR(3));
+                refresh();
             }
         }
     }
@@ -2979,4 +3137,323 @@ void fightroom(struct Player *p){
     p->health -= 500;
     clear();
     return;
+}
+
+void show_wepons(struct Player *p){
+    int type1 = 0,type2 = 0,type3 = 0,type4 = 0,type5 = 0;
+    for(int i = 0; i < p->wepon_number; i++){
+        if(p->wepons[i].type == 1){
+            type1 += 1;
+        }
+        if(p->wepons[i].type == 2){
+            type2 += 1;
+        }
+        if(p->wepons[i].type == 3){
+            type3 += 1;
+        }
+        if(p->wepons[i].type == 4){
+            type4 += 1;
+        }
+        if(p->wepons[i].type == 5){
+            type5 += 1;
+        }
+    }
+    move(8,20);
+    printw("%d   %s",type1,a);
+    move(9,20);
+    printw("%d   %s",type2,b);
+    move(10,20);
+    printw("%d   %s",type3,c);
+    move(11,20);
+    printw("%d   %s",type4,d);
+    move(12,20);
+    printw("%d   %s",type5,e);
+    refresh();
+    getch();
+    clear();
+}
+
+void show_spells(struct Player *p){
+    int type1 = 0,type2 = 0,type3 = 0;
+    for(int i = 0; i < p->spell_number; i++){
+        if(p->spells[i].type == 1){
+            type1 += 1;
+        }
+        if(p->spells[i].type == 2){
+            type2 += 1;
+        }
+        if(p->spells[i].type == 3){
+            type3 += 1;
+        }
+    }
+    move(8,20);
+    printw("%d   %s",type1,f);
+    move(9,20);
+    printw("%d   %s",type2,g);
+    move(10,20);
+    printw("%d   %s",type3,h);
+    refresh();
+    getch();
+    clear();
+}
+
+void show_foods(struct Player *p){
+    int type1 = 0,type2 = 0,type3 = 0,type4 = 0;
+    for(int i = 0; i < p->food_number; i++){
+        if(p->foods[i].type == 1){
+            type1 += 1;
+        }
+        if(p->foods[i].type == 2){
+            type2 += 1;
+        }
+        if(p->foods[i].type == 3){
+            type3 += 1;
+        }
+        if(p->foods[i].type == 4){
+            type4 += 1;
+        }
+    }
+    move(8,20);
+    printw("%d   %s",type1,l);
+    move(9,20);
+    printw("%d   %s",type2,o);
+    move(10,20);
+    printw("%d   %s",type3,u);
+    move(11,20);
+    printw("%d   %s",type4,n);
+    refresh();
+    getch();
+    clear();
+}
+
+void show_map(struct Map *map){
+    start_color();
+    init_pair(1,COLOR_RED,COLOR_BLACK);
+    init_pair(2,COLOR_GREEN,COLOR_BLACK);
+    init_pair(3,COLOR_YELLOW,COLOR_BLACK);
+    for(int i = 0; i < map->number_of_rooms; i++){
+        int x_1 = map->rooms[i].x;  
+        int x_2 = map->rooms[i].x + map->rooms[i].size;  
+        int y_1 = map->rooms[i].y;  
+        int y_3 = map->rooms[i].y + map->rooms[i].size;  
+        if(i == map->number_Spell_room){
+            for (int j = 0; j <= map->rooms[i].size; j++) {  
+                attron(COLOR_PAIR(1));
+                move(y_1, x_1 + j);
+                printw("_");  
+                move(y_3, x_1 + j);  
+                printw("_");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }  
+            for (int j = 0; j < map->rooms[i].size; j++){  
+                attron(COLOR_PAIR(1));
+                move(y_1 + j + 1, x_1);  
+                printw("|");
+                move(y_1 + j + 1, x_2);  
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+        }else{
+            for (int j = 0; j <= map->rooms[i].size; j++) {  
+                move(y_1, x_1 + j);
+                printw("_");  
+                move(y_3, x_1 + j);  
+                printw("_");  
+            }  
+            for (int j = 0; j < map->rooms[i].size; j++){  
+                move(y_1 + j + 1, x_1);  
+                printw("|");
+                move(y_1 + j + 1, x_2);  
+                printw("|");  
+            }
+        }
+        for(int j = 0; j < 2; j++){
+            mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"+");
+            mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
+        }
+        if(i == map->number_Password_Doors_room){
+            if(map->x_password_door == 0 && map->y_password_door == 0){
+                start_color();
+                attron(COLOR_PAIR(2));
+                mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
+                attroff(COLOR_PAIR(2));
+                mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
+                refresh();
+            }else{
+                start_color();
+                attron(COLOR_PAIR(1));
+                mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
+                attroff(COLOR_PAIR(1));
+                mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
+                refresh();
+            }
+        }
+        if(i == map->number_Spell_room){
+            if(i == 0){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("_");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 1){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 2){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("_");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 3){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 4){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 5){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("_");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 6){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("|");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+            if(i == 7){
+                attron(COLOR_PAIR(1));
+                move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                printw("_");
+                move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                printw("|");
+                attroff(COLOR_PAIR(1));
+                refresh();
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->foods[j].number_room == i){
+                move(map->foods[j].y_food,map->foods[j].x_food);
+                if(map->foods[j].type == 1){
+                    printw("%s",l);
+                }
+                if(map->foods[j].type == 2){
+                    printw("%s",o);
+                }
+                if(map->foods[j].type == 3){
+                    printw("%s",u);
+                }
+                if(map->foods[j].type == 4){
+                    printw("%s",n);
+                }
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->spells[j].number_room == i){
+                move(map->spells[j].y_spell,map->spells[j].x_spell);
+                if(map->spells[j].type == 1){
+                    printw("%s",f);
+                }
+                if(map->spells[j].type == 2){
+                    printw("%s",g);
+                }
+                if(map->spells[j].type == 3){
+                    printw("%s",h);
+                }
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->wepons[j].number_room == i){
+                move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
+                if(map->wepons[j].type == 1){
+                    printw("%s",a);
+                }
+                if(map->wepons[j].type == 2){
+                    printw("%s",b);
+                }
+                if(map->wepons[j].type == 3){
+                    printw("%s",c);
+                }
+                if(map->wepons[j].type == 4){
+                    printw("%s",d);
+                }
+                if(map->wepons[j].type == 5){
+                    printw("%s",e);
+                }
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->golds[j].number_room == i){
+                move(map->golds[j].y_gold,map->golds[j].x_gold);
+                if(map->golds[j].is_black){
+                    printw("%s",v);
+                }else{
+                    printw("%s",m);
+                }
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->pillors[j].number_room == i){
+                mvprintw(map->pillors[j].y_pillar,map->pillors[j].x_pillar,"O");
+            }
+        }
+        for(int j = 0; j < 3; j++){
+            mvprintw(map->traps[j].y_trap,map->traps[j].x_trap,"^");
+        }
+        if(map->number_room_fight_room == i){
+            mvprintw(map->y_fight_room,map->x_fight_room,"F");
+        }
+        if(map->number_room_stair == i){
+            mvprintw(map->y_stair,map->x_stair,"<");
+        }
+        if(map->number_Password_Doors_room == i){
+            mvprintw(map->y_create_paasword,map->x_create_paasword,"&");
+        }
+        if(map->number_Master_Key_room == i && (map->x_Master_Key != 0)){
+            move(map->y_Master_Key,map->x_Master_Key);
+            attron(COLOR_PAIR(3));
+            printw("%s",r);
+            attroff(COLOR_PAIR(3));
+            refresh();
+        }
+    }
+    for(int i = 0; i < map->corridor_count; i++){
+        mvprintw(map->corridors[i].y_corrifer,map->corridors[i].x_corridor,"#");
+    }
+    refresh();
+    getch();
+    clear();
 }
