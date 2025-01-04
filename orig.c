@@ -1609,59 +1609,46 @@ int is_create_password(struct Map *map,int x,int y){
 }
 
 int panel(struct Player* p, struct Map *map) {
+    clear();
+    refresh();
     start_color();
     init_pair(1, COLOR_YELLOW, COLOR_BLACK);
     init_pair(2, COLOR_RED, COLOR_BLACK);
-    move(1, 70);
+    move(5, 20);
     printw("make your chice:");
-    move(2, 70);
+    move(6, 20);
     printw("t.Use Mater Key  y.Enter last password  u.Exit");
     int choice;
     choice = getch();
     if (choice == 't') {
         if (p->have_master_key) {
-            move(1, 70);
-            clrtoeol();
-            move(2, 70);
-            clrtoeol();
+            clear();
+            refresh();
             p->have_master_key = 0;
             map->x_password_door = 0;
             map->y_password_door = 0;
             return 1;
         } else {
-            move(3, 70);
+            move(7, 20);
             printw("You don't have master key");
-            sleep(2);
-            move(1, 70);
-            clrtoeol();
-            move(2, 70);
-            clrtoeol();
-            move(3, 70);
-            clrtoeol();
+            sleep(3);
+            clear();
+            refresh();
             return 0;
         }
     }
-
     if (choice == 'y') {
-        move(3, 70);
+        move(7, 20);
         printw("Enter The password");
-
-        move(4, 70);
+        move(8, 20);
         int password;
         nocbreak();
         echo();
         scanw("%d", &password);
-
         for (int i = 0; i < 3; i++) {
             if (map->last_password == password) {
-                move(1, 70);
-                clrtoeol();
-                move(2, 70);
-                clrtoeol();
-                move(3, 70);
-                clrtoeol();
-                move(4, 70);
-                clrtoeol();
+                clear();
+                refresh();
                 cbreak();
                 noecho();
                 map->x_password_door = 0;
@@ -1669,38 +1656,32 @@ int panel(struct Player* p, struct Map *map) {
                 return 1;
             } else {
                 if (i == 0) {
-                    move(4, 70);
-                    clrtoeol();
                     attron(COLOR_PAIR(1));  // Set color pair to yellow
-                    mvprintw(5, 70, "Wrong password!");
+                    mvprintw(9, 50, "Wrong password!");
                     attroff(COLOR_PAIR(1)); // Turn off yellow color
-                    sleep(1);
-                    move(5, 70);
+                    refresh();
+                    sleep(3);
+                    move(9, 50);
                     clrtoeol();
-                    move(4, 70);
+                    refresh();
+                    move(8, 20);
                     scanw("%d", &password);
                 }
                 if (i == 1) {
-                    move(4, 70);
-                    clrtoeol();
                     attron(COLOR_PAIR(2));  // Set color pair to red
-                    mvprintw(5, 70, "Wrong password!");
+                    mvprintw(9, 50, "Wrong password!");
                     attroff(COLOR_PAIR(2)); // Turn off red color
-                    sleep(1);
-                    move(5, 70);
+                    refresh();
+                    sleep(3);
+                    move(9, 50);
                     clrtoeol();
-                    move(4, 70);
+                    refresh();
+                    move(8, 20);
                     scanw("%d", &password);
                 }
                 if (i == 2) {
-                    move(0, 70);
-                    clrtoeol();
-                    move(1, 70);
-                    clrtoeol();
-                    move(3, 70);
-                    clrtoeol();
-                    move(4, 70);
-                    clrtoeol();
+                    clear();
+                    refresh();
                     cbreak();
                     noecho();
                     return 0;
@@ -1710,23 +1691,12 @@ int panel(struct Player* p, struct Map *map) {
     }
 
     if (choice == 'u') {
-        move(1, 70);
-        clrtoeol();
-        move(2, 70);
-        clrtoeol();
+        clear();
+        refresh();
         return 0;
     }
-
-    move(1, 70);
-    clrtoeol();
-    move(2, 70);
-    clrtoeol();
-    move(3, 70);
-    clrtoeol();
-    move(4, 70);
-    clrtoeol();
-    move(5, 70);
-    clrtoeol();
+    clear();
+    refresh();
     return 0;
 }
 
@@ -1875,7 +1845,25 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         }
         if(is_door(map,p->x + second_x,p->y + second_y)){
             if(is_password_door(map,p->x + second_x,p->y + second_y) && (map->x_create_paasword != 0 && map->y_password_door != 0)){
+                if(p->last_map == 1){
+                    p->x_map1 = p->x;
+                    p->y_map1 = p->y;
+                }
+                if(p->last_map == 2){
+                    p->x_map2 = p->x;
+                    p->y_map2 = p->y;
+                }
+                if(p->last_map == 3){
+                    p->x_map3 = p->x;
+                    p->y_map3 = p->y;
+                }
+                if(p->last_map == 4){
+                    p->x_map4 = p->x;
+                    p->y_map4 = p->y;
+                }
                 int resualt = panel(p,map);
+                move_player(map,p,p->last_map);
+                return;
                 if(resualt){
                     if(is_corridor(map,p->x,p->y)){
                         mvprintw(p->y,p->x,"#");
