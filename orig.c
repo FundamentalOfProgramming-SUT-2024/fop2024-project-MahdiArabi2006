@@ -2650,7 +2650,10 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
             move_effect("trap",p,map,p->x + second_x,p->y + second_y);
         }
         if(is_fight_room(map,p->x + second_x,p->y + second_y)){
-            move_effect("fight",p,map,p->x,p->y);
+            move_effect("fight",p,map,p->x + second_x,p->y + second_y);
+        }
+        if(is_gold(map,p->x + second_x,p->y + second_y)){
+            move_effect("gold",p,map,p->x + second_x,p->y + second_y);
         }
         if(is_trap(map,p->x,p->y)){
             mvprintw(p->y,p->x,"^");
