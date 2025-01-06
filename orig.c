@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <string.h>
 int size = 0;
+time_t start;
+time_t end;
 const char* a = "🗱";//خنجر
 const char* b = "⚒️";//گرز
 const char* c = "🪄";//عصای جادویی
@@ -23,28 +25,31 @@ const char* v = "⚫";//طلای سیاه
 const char* r = "△";
 const char* y = "🏁";
 const char* x = "🏆";
-
+#pragma pack(1)
 struct Food{
     int x_food;
     int y_food;
     int number_room;
     int type;//1-4
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Spell{
     int x_spell;
     int y_spell;
     int number_room;
     int type;//1-3
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Wepon{
     int x_wepon;
     int y_wepon;
     int number_room;
     int type;//1-5
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Gold{
     int x_gold;
     int y_gold;
@@ -52,7 +57,8 @@ struct Gold{
     int worth;
     int number_room;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Player{
     int x;
     int y;
@@ -74,26 +80,37 @@ struct Player{
     int y_map2;
     int y_map3;
     int y_map4;
+    int hungry;
+    int game_number;
+    time_t priod;
+    int win_last_game;
+    time_t begin_game;
+    int color;
+    int level;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Trap{
     int x_trap;
     int y_trap;
     int number_room;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Corridor{
     int x_corridor;
     int y_corrifer;
     int is_seen;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Pillar{
     int x_pillar;
     int y_pillar;
     int number_room;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Door{
     int x_door;  
     int y_door;
@@ -101,7 +118,8 @@ struct Door{
     int is_secret_door;
     int is_password_door;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Room {
     int x;  
     int y;
@@ -111,7 +129,8 @@ struct Room {
     int y_window;
     int is_seen;
 };  
-
+#pragma pack()
+#pragma pack(1)
 struct Map{
     int x_stair;
     int y_stair;
@@ -144,10 +163,12 @@ struct Map{
     int y_end;
     int has_treasure_room;
 };
-
+#pragma pack()
+#pragma pack(1)
 struct Game{
     struct Map maps[4];
 }game;
+#pragma pack()
 
 void generate_map(struct Map *map,char name[100],int number);
 int can_have_room(struct Room rooms[8], int current_room);  
@@ -219,6 +240,9 @@ void show_wepons(struct Player *p);
 void show_spells(struct Player *p);
 void show_foods(struct Player *p);
 void show_map(struct Map *map);
+int is_spell_room(struct Map *map,int x,int y);
+int file_exists(char filename[100]);
+void remove_file(char filename[100],int number);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -228,7 +252,6 @@ int main(){
     srand(time(0));
 	while (1){
 		menus();
-		getch();
 		break;
 	}
 	endwin();
@@ -974,6 +997,21 @@ int is_food(struct Map *map,int x, int y){
 }
 
 void move_player(struct Map *map,struct Player *p,int number_map){
+    if(p->win_last_game == 1){
+        clear();
+        refresh();
+        return;
+    }
+    if(p->win_last_game == 0){
+        clear();
+        refresh();
+        return;
+    }
+    if(p->win_last_game == -1){
+        clear();
+        refresh();
+        return;
+    }
     raw(); 
     keypad(stdscr, TRUE);
     noecho();
@@ -985,7 +1023,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             p->y = 0;
             p->last_map = number_map;
             move(0,0);
-            printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
             while(p->x == 0 || p->y == 0 || (p->x == map->x_stair && p->y == map->y_stair) || (p->x == map->x_create_paasword && p->y == map->y_create_paasword) || (p->x == map->x_fight_room && p->y == map->y_fight_room) || (p->x == map->x_Master_Key && p->y == map->y_Master_Key) || is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_food(map,p->x,p->y) || is_spell(map,p->x,p->y) || is_wepon(map,p->x,p->y) || is_gold(map,p->x,p->y)){
                 p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
                 p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
@@ -1002,7 +1040,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             p->y = 0;
             p->last_map = number_map;
             move(0,0);
-            printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
             while(p->x == 0 || p->y == 0 || (p->x == map->x_stair && p->y == map->y_stair) || (p->x == map->x_create_paasword && p->y == map->y_create_paasword) || (p->x == map->x_fight_room && p->y == map->y_fight_room) || (p->x == map->x_Master_Key && p->y == map->y_Master_Key) || is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_food(map,p->x,p->y) || is_spell(map,p->x,p->y) || is_wepon(map,p->x,p->y) || is_gold(map,p->x,p->y)){
                 p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
                 p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
@@ -1019,7 +1057,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             p->y = 0;
             p->last_map = number_map;
             move(0,0);
-            printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
             while(p->x == 0 || p->y == 0 || (p->x == map->x_stair && p->y == map->y_stair) || (p->x == map->x_create_paasword && p->y == map->y_create_paasword) || (p->x == map->x_fight_room && p->y == map->y_fight_room) || (p->x == map->x_Master_Key && p->y == map->y_Master_Key) || is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_food(map,p->x,p->y) || is_spell(map,p->x,p->y) || is_wepon(map,p->x,p->y) || is_gold(map,p->x,p->y)){
                 p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
                 p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
@@ -1036,7 +1074,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             p->y = 0;
             p->last_map = number_map;
             move(0,0);
-            printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
             while(p->x == 0 || p->y == 0 || (p->x == map->x_stair && p->y == map->y_stair) || (p->x == map->x_create_paasword && p->y == map->y_create_paasword) || (p->x == map->x_fight_room && p->y == map->y_fight_room) || (p->x == map->x_Master_Key && p->y == map->y_Master_Key) || is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_food(map,p->x,p->y) || is_spell(map,p->x,p->y) || is_wepon(map,p->x,p->y) || is_gold(map,p->x,p->y)){
                 p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
                 p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
@@ -1047,17 +1085,53 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
     }
     move(0,0);
-    printw("Helth: %d  Food: %d  Gold: %d",p->health,p->food_number,p->gold);
+    printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
     mvprintw(p->y,p->x,"P");
     refresh();
     print(map,p->x,p->y);
     time_t time_start;
     while (1){
+        if(number_map == 4 && p->x == map->x_end && p->y == map->y_end){
+            p->win_last_game = 1;
+            clear();
+            refresh();
+            break;
+        }
+        if(is_spell_room(map,p->x,p->y)){
+            p->health -= 1;
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
+        }
+        if(p->health <= 0){
+            p->win_last_game = 0;
+            return;
+        }
         time_t time_end;
         time(&time_end);
+        time(&end);
+        if(time_end - p->priod >= 30){
+            if(p->hungry >= 1){
+                p->hungry -= 1;
+                time(&p->priod);
+                move(0,0);
+                clrtoeol();
+                printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+                refresh();
+            }
+            time(&p->priod);
+        }
         if(time_end - time_start >= 10){
             move(0,60);
             clrtoeol();
+        }
+        if(p->hungry <= 2){
+            p->health -= 1;
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
         int c = getch();
         if(c == 'w'){
@@ -1561,6 +1635,41 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             move_player(map,p,p->last_map);
             return;
         }
+        if(c == 'o'){
+            for(int j = 0; j < p->food_number; j++){
+                if(p->foods[j].type == 1){
+                    p->hungry += 1;
+                    p->foods[j].type = 0;
+                    p->food_number -= 1;
+                    move(0,0);
+                    clrtoeol();
+                    printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
+                    break;
+                }
+            }
+        }
+        if(c == KEY_F(3)){
+            clear();
+            refresh();
+            p->win_last_game = -1;
+            if(p->last_map == 1){
+                p->x_map1 = p->x;
+                p->y_map1 = p->y;
+            }
+            if(p->last_map == 2){
+                p->x_map2 = p->x;
+                p->y_map2 = p->y;
+            }
+            if(p->last_map == 3){
+                p->x_map3 = p->x;
+                p->y_map3 = p->y;
+            }
+            if(p->last_map == 4){
+                p->x_map4 = p->x;
+                p->y_map4 = p->y;
+            }
+            return;
+        }
     }
 }
 
@@ -1609,7 +1718,7 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         move(0,0);
         clrtoeol();
         p->food_number += 1;
-        printw("Helth: %d  Food: %d Gold: %d",p->health,p->food_number,p->gold);
+        printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
         refresh();
     }
     else if(!strcmp(state,"trap")){
@@ -1622,7 +1731,7 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         move(0,0);
         clrtoeol();
         p->health -= 100;
-        printw("Helth: %d  Food: %d Gold: %d",p->health,p->food_number,p->gold);
+        printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
         refresh();
     }
     else if(!strcmp(state,"spell")){
@@ -1664,7 +1773,7 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         p->gold += map->golds[index_gold(map,x,y)].worth;
         f_gold(map,x,y);
         move(0,0);
-        printw("Helth: %d  Food: %d Gold: %d",p->health,p->food_number,p->gold);
+        printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
         refresh();
     }
     if(!strcmp(state,"master")){
@@ -1907,6 +2016,7 @@ void create_password(struct Map *map,time_t time_start){
     move(0,60);
     printw("The password: %d",password);
     time(&time_start);
+    time(&start);
 }
 
 void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
@@ -2324,6 +2434,10 @@ void print_room(struct Map *map){
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
     init_pair(3,COLOR_YELLOW,COLOR_BLACK);
     init_pair(4,COLOR_YELLOW,COLOR_BLACK);
+    if(end - start < 10 && map->last_password != 0){
+        move(0,60);
+        printw("The password: %d",map->last_password);
+    }
     for(int i = 0; i < map->number_of_rooms; i++){
         if(map->rooms[i].is_seen){
             int x_1 = map->rooms[i].x;  
@@ -2478,7 +2592,7 @@ void print_room(struct Map *map){
                     refresh();
                 }
             }
-            if(map->has_treasure_room){
+            if(map->has_treasure_room && i == map->number_Treasure_Room){
                 move(map->y_end,map->x_end);
                 printw("%s",y);
                 refresh();
@@ -2638,6 +2752,8 @@ void check_corrider(struct Map *map,int x, int y){
 }
 
 void print(struct Map *map,int x, int y){
+    print_corridor(map);
+    print_room(map);
     if(is_room(map,x,y)){
         print_room(map);
     }
@@ -2703,11 +2819,27 @@ void create_new_player(){
 		move(3,8);
 		scanw("%s",email);
 	}
-	int score = 0;
-	int gold = 0;
-	int number_of_game = 0;
-	int time = 0;
-	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,score,gold,number_of_game,time);
+    struct Player p;
+    p.health = 2000;
+    p.food_number = 0;
+    p.gold = 0;
+    p.have_master_key = 0;
+    p.spell_number = 0;
+    p.wepon_number = 0;
+    p.x_map1 = 0;
+    p.x_map2 = 0;
+    p.x_map3 = 0;
+    p.x_map4 = 0;
+    p.y_map1 = 0;
+    p.y_map2 = 0;
+    p.y_map3 = 0;
+    p.y_map4 = 0;
+    p.hungry = 5;
+    p.game_number = 0;
+    p.win_last_game = 2;
+    time(&p.begin_game);
+    save_player(name,&p);
+	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
 	fclose(players);
 	getch();
 	return;
@@ -2998,24 +3130,24 @@ void table_of_players() {
 			move(6 + i,4);
 			printw("(Goat)");
 			move(6 + i, 14);
-            printw("|%-6d|%-22s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_REVERSE | COLOR_PAIR(1));
         } else if (i == 1) {
             attron(A_BOLD | COLOR_PAIR(2));
 			move(6 + i,4);
 			printw("(Legend)");
 			move(6 + i,14);
-            printw("|%-6d|%-22s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_BOLD | COLOR_PAIR(2));
         } else if (i == 2) {
             attron(A_DIM | COLOR_PAIR(3));
 			move(6 + i,4);
 			printw("(Good)");
 			move(6 + i,14);
-            printw("|%-6d|%-22s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_DIM | COLOR_PAIR(3));
         } else {
-            printw("|%-6d|%-22s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
         }
     }
 	move(6 + size_users,14);
@@ -3028,10 +3160,11 @@ void table_of_players() {
 void menus(){
 	clear();
 	label:
-    const char *choices[3] = {
+    const char *choices[4] = {
         "create new player",
         "Enter player",
-        "table of players"
+        "table of players",
+        "Exit"
     };
     cbreak();
     noecho();
@@ -3044,7 +3177,7 @@ void menus(){
     int current_item = 0;
     int ch;
     while (1) {
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             if (i == current_item) {
                 wattron(menu, A_BOLD | COLOR_PAIR(2));
                 mvwprintw(menu, i + 1, 1, "%s", choices[i]);
@@ -3060,13 +3193,13 @@ void menus(){
         switch (ch) {
             case KEY_UP:
 				if(current_item == 0){
-					current_item = 3 - 1;
+					current_item = 4 - 1;
 				}else{
 					current_item -= 1;
 				}
                 break;
             case KEY_DOWN:
-				if(current_item == 0 || current_item == 1){
+				if(current_item == 0 || current_item == 1 || current_item == 2){
 					current_item += 1;
 				}else{
 					current_item = 0;
@@ -3096,20 +3229,440 @@ void menus(){
 					refresh();
 					goto label;
 				}
-                break;
-            case KEY_F(2):
-                endwin();
-                return;
+                if(current_item == 3){
+                    clear();
+					refresh();
+                    return;
+                }
+        
         }
     }
 }
 
 void players_menus(char name[100]){
-	const char *choices[4] = {
-        "create new game",
-		"continue last game",
-        "seting menu",
-        "profile"
+	const char *choices[5] = {
+        "Create new game",
+		"Continue last game",
+        "Setting menu",
+        "Profile",
+        "Back"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(6,40,4,4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 5; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+				if(current_item == 0){
+					current_item = 5 - 1;
+				}else{
+					current_item -= 1;
+				}
+                break;
+            case KEY_DOWN:
+				if(current_item == 0 || current_item == 1 || current_item == 2 || current_item == 3){
+					current_item += 1;
+				}else{
+					current_item = 0;
+				}
+                break;
+            case 10:
+                refresh();
+				clear();
+				if(current_item == 0){
+					create_new_game(name);
+					clear();
+					refresh();
+				}
+				if(current_item == 1){
+					continue_last_game(name);
+					clear();
+					refresh();
+				}
+				if(current_item == 2){
+					seting_menu(name);
+					clear();
+					refresh();
+				}
+				if(current_item == 3){
+					profile(name);
+					clear();
+					refresh();
+				}
+                if(current_item == 4){
+                    clear();
+                    refresh();
+                    return;
+                }
+                break;
+        }
+    }	
+}
+
+void create_new_game(char name[100]){
+    start_color();
+    // init_pair(1,COLOR_GREEN,COLOR_BLACK);
+    // init_pair(2,COLOR_RED,COLOR_BLACK);
+    char name1[100];
+    char name2[100]; 
+    char name3[100];
+    char name4[100];
+    char name5[100];
+    char name6[100]; 
+    char name7[100];
+    char name8[100];
+    char name9[100];
+    char name10[100];
+    char name11[100];
+    char name12[100];
+    strcpy(name1,name);
+    strcpy(name2,name);
+    strcpy(name3,name);
+    strcpy(name4,name);
+    strcpy(name5,name);
+    strcpy(name6,name);
+    strcpy(name7,name);
+    strcpy(name8,name);
+    strcpy(name9,name);
+    strcpy(name10,name);
+    strcpy(name11,name);
+    strcpy(name12,name);
+    remove_file(name9,1);
+    remove_file(name10,1);
+    remove_file(name11,1);
+    remove_file(name12,1);
+    generate_map(&game.maps[0],name1,1);
+    generate_map(&game.maps[1],name2,2);
+    generate_map(&game.maps[2],name3,3);
+    generate_map(&game.maps[3],name4,4);
+    game.maps[0].last_password = 0;
+    game.maps[1].last_password = 0;
+    game.maps[2].last_password = 0;
+    game.maps[3].last_password = 0;
+    struct Player p;
+    load_player(name,&p);
+    for(int i = 0; i < p.food_number; i++){
+        p.foods[i].type = 0;
+    }
+    for(int i = 0; i < p.wepon_number; i++){
+        p.wepons[i].type = 0;
+    }
+    for(int i = 0; i < p.spell_number; i++){
+        p.spells[i].type = 0;
+    }
+    p.health = p.level * 1000;
+    p.food_number = 0;
+    p.gold = 0;
+    p.have_master_key = 0;
+    p.spell_number = 0;
+    p.wepon_number = 0;
+    p.x_map1 = 0;
+    p.x_map2 = 0;
+    p.x_map3 = 0;
+    p.x_map4 = 0;
+    p.y_map1 = 0;
+    p.y_map2 = 0;
+    p.y_map3 = 0;
+    p.y_map4 = 0;
+    p.hungry = 5;
+    p.win_last_game = 2;
+    p.last_map = 1;
+    time(&p.priod);
+    p.win_last_game = 2;
+    move_player(&game.maps[0],&p,1);
+    label:
+    clear();
+    refresh();
+    if(p.win_last_game == 1){
+        move(10,10);
+        attron(COLOR_PAIR(2));
+        printw("Congratulations. You won!");
+        attroff(COLOR_PAIR(2));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        FILE* players = fopen("Players.txt","r");
+        FILE* temp = fopen("temp.txt","w");
+        char line[256];
+        time_t now;
+        time(&now);
+        while (fgets(line, sizeof(line), players) != NULL) {
+            char name_x[100], password[100], email[100];
+            int gold, gold2, game_number, time_of_play;
+            sscanf(line, "%s %s %s %d %d %d %d", name, password, email, &gold, &gold2, &game_number, &time_of_play);
+            if(!strcmp(name,name_x)){
+                gold = p.gold;
+                gold2 = p.gold;
+                game_number = p.game_number;
+                time_of_play = (now - p.begin_game) / (60 * 60 * 24);
+                fprintf(temp, "%s %s %s %d %d %d %d\n", name, password, email, gold, gold2, game_number, time_of_play);
+            }else{
+                fprintf(temp, "%s", line);
+            }
+        }
+        fclose(players);
+        fclose(temp);
+        remove("players.txt");
+        rename("temp.txt","players.txt");
+        p.game_number += 1;
+        p.last_map = 1;
+        p.win_last_game = 2;
+        for(int i = 0; i < p.food_number; i++){
+            p.foods[i].type = 0;
+        }
+        for(int i = 0; i < p.wepon_number; i++){
+            p.wepons[i].type = 0;
+        }
+        for(int i = 0; i < p.spell_number; i++){
+            p.spells[i].type = 0;
+        }
+        p.health = p.level * 1000;
+        p.food_number = 0;
+        p.gold = 0;
+        p.have_master_key = 0;
+        p.spell_number = 0;
+        p.wepon_number = 0;
+        p.x_map1 = 0;
+        p.x_map2 = 0;
+        p.x_map3 = 0;
+        p.x_map4 = 0;
+        p.y_map1 = 0;
+        p.y_map2 = 0;
+        p.y_map3 = 0;
+        p.y_map4 = 0;
+        p.hungry = 5;
+        save_player(name,&p);
+        remove_file(name5,1);
+        remove_file(name6,2);
+        remove_file(name7,3);
+        remove_file(name8,4);
+        return;
+    }
+    else if(p.win_last_game == 0){
+        move(10,10);
+        attron(COLOR_PAIR(1));
+        printw("Sorry. You lost the game!");
+        attroff(COLOR_PAIR(1));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        p.game_number += 1;
+        p.last_map  = 1;
+        p.win_last_game = 2;
+        for(int i = 0; i < p.food_number; i++){
+            p.foods[i].type = 0;
+        }
+        for(int i = 0; i < p.wepon_number; i++){
+            p.wepons[i].type = 0;
+        }
+        for(int i = 0; i < p.spell_number; i++){
+            p.spells[i].type = 0;
+        }
+        p.health = p.level * 1000;
+        p.food_number = 0;
+        p.gold = 0;
+        p.have_master_key = 0;
+        p.spell_number = 0;
+        p.wepon_number = 0;
+        p.x_map1 = 0;
+        p.x_map2 = 0;
+        p.x_map3 = 0;
+        p.x_map4 = 0;
+        p.y_map1 = 0;
+        p.y_map2 = 0;
+        p.y_map3 = 0;
+        p.y_map4 = 0;
+        p.hungry = 5;
+        save_player(name,&p);
+        remove_file(name5,1);
+        remove_file(name6,2);
+        remove_file(name7,3);
+        remove_file(name8,4);
+        return;
+    }
+    else if(p.win_last_game == -1){
+        save_player(name,&p);
+        save_map(name5,&game.maps[0],1);
+        save_map(name6,&game.maps[1],2);
+        save_map(name7,&game.maps[2],3);
+        save_map(name8,&game.maps[3],4);
+        return;
+    }
+}
+
+void continue_last_game(char name[100]){
+    start_color();
+    // init_pair(1,COLOR_GREEN,COLOR_BLACK);
+    // init_pair(2,COLOR_RED,COLOR_BLACK);
+    char name1[100];
+    char name2[100]; 
+    char name3[100];
+    char name4[100];
+    char name5[100];
+    char name6[100]; 
+    char name7[100];
+    char name8[100];
+    char name9[100];
+    strcpy(name1,name);
+    strcpy(name2,name);
+    strcpy(name3,name);
+    strcpy(name4,name);
+    strcpy(name5,name);
+    strcpy(name6,name);
+    strcpy(name7,name);
+    strcpy(name8,name);
+    strcpy(name9,name);
+    load_map(name1,&game.maps[0],1);
+    load_map(name2,&game.maps[1],2);
+    load_map(name3,&game.maps[2],3);
+    load_map(name4,&game.maps[3],4);
+    struct Player p;
+    load_player(name,&p);
+    if(p.win_last_game != -1){
+        move(10,10);
+        printw("There is no last game!");
+        clear();
+        refresh();
+        return;
+    }
+    if(!file_exists(name9)){
+        move(10,10);
+        printw("There is no last game!");
+        clear();
+        refresh();
+        return;
+    }
+    time(&p.priod);
+    p.win_last_game = 2;
+    move_player(&game.maps[p.last_map - 1],&p,p.last_map);
+    clear();
+    refresh();
+    if(p.win_last_game == 1){
+        move(10,10);
+        attron(COLOR_PAIR(2));
+        printw("Congratulations. You won!");
+        attroff(COLOR_PAIR(2));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        p.game_number += 1;
+        p.last_map = 1;
+        p.win_last_game = 2;
+        for(int i = 0; i < p.food_number; i++){
+            p.foods[i].type = 0;
+        }
+        for(int i = 0; i < p.wepon_number; i++){
+            p.wepons[i].type = 0;
+        }
+        for(int i = 0; i < p.spell_number; i++){
+            p.spells[i].type = 0;
+        }
+        p.health = p.level * 1000;
+        p.food_number = 0;
+        p.gold = 0;
+        p.have_master_key = 0;
+        p.spell_number = 0;
+        p.wepon_number = 0;
+        p.x_map1 = 0;
+        p.x_map2 = 0;
+        p.x_map3 = 0;
+        p.x_map4 = 0;
+        p.y_map1 = 0;
+        p.y_map2 = 0;
+        p.y_map3 = 0;
+        p.y_map4 = 0;
+        p.hungry = 5;
+        save_player(name,&p);
+        remove_file(name5,1);
+        remove_file(name6,2);
+        remove_file(name7,3);
+        remove_file(name8,4);
+        return;
+    }
+    else if(p.win_last_game == 0){
+        move(10,10);
+        attron(COLOR_PAIR(1));
+        printw("Sorry. You lost the game!");
+        attroff(COLOR_PAIR(1));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        p.game_number += 1;
+        p.last_map  = 1;
+        p.win_last_game = 2;
+        for(int i = 0; i < p.food_number; i++){
+            p.foods[i].type = 0;
+        }
+        for(int i = 0; i < p.wepon_number; i++){
+            p.wepons[i].type = 0;
+        }
+        for(int i = 0; i < p.spell_number; i++){
+            p.spells[i].type = 0;
+        }
+        p.health = p.level * 1000;
+        p.food_number = 0;
+        p.gold = 0;
+        p.have_master_key = 0;
+        p.spell_number = 0;
+        p.wepon_number = 0;
+        p.x_map1 = 0;
+        p.x_map2 = 0;
+        p.x_map3 = 0;
+        p.x_map4 = 0;
+        p.y_map1 = 0;
+        p.y_map2 = 0;
+        p.y_map3 = 0;
+        p.y_map4 = 0;
+        p.hungry = 5;
+        save_player(name,&p);
+        remove_file(name5,1);
+        remove_file(name6,2);
+        remove_file(name7,3);
+        remove_file(name8,4);
+        return;
+    }
+    else if(p.win_last_game == -1){
+        save_player(name,&p);
+        save_map(name5,&game.maps[0],1);
+        save_map(name6,&game.maps[1],2);
+        save_map(name7,&game.maps[2],3);
+        save_map(name8,&game.maps[3],4);
+        return;
+    }
+}
+
+void seting_menu(char name[100]){
+    struct Player p;
+    load_player(name,&p);
+    const char *choices[4] = {
+        "change color hero",
+		"level",
+        "music",
+        "back"
     };
     cbreak();
     noecho();
@@ -3154,42 +3707,76 @@ void players_menus(char name[100]){
                 refresh();
 				clear();
 				if(current_item == 0){
-					create_new_game(name);
+					mvprintw(10,10,"Chose Color\n1.Red\n2.green\n3.regular");
+                    int chose;
+                    scanw("%d",&chose);
+                    if(chose == 1){
+                        p.color = 1;
+                    }
+                    else if(chose == 2){
+                        p.color = 2;
+                    }
+                    else{
+                        p.color = 0;
+                    }
 					clear();
 					refresh();
 				}
 				if(current_item == 1){
-					continue_last_game(name);
+					mvprintw(10,10,"Chose level\n1.easy\n2.intermediate\n3.hard");
+                    int chose;
+                    scanw("%d",&chose);
+                    if(chose == 1){
+                        p.level = 3;
+                    }
+                    else if(chose == 2){
+                        p.level = 2;
+                    }
+                    else{
+                        p.level = 1;
+                    }
+                    p.health = p.level * 1000;
 					clear();
 					refresh();
 				}
 				if(current_item == 2){
-					seting_menu(name);
 					clear();
 					refresh();
 				}
 				if(current_item == 3){
-					profile(name);
+					save_player(name,&p);
+                    return;
 					clear();
 					refresh();
 				}
                 break;
-            case KEY_F(2):
-                endwin();
-                return;
         }
-    }	
+    }
 }
 
-void create_new_game(char name[100]){}
-
-void continue_last_game(char name[100]){}
-
-void seting_menu(char name[100]){}
-
-void profile(char name[100]){}
+void profile(char name[100]){
+    clear();
+    refresh();
+    struct Player p;
+    load_player(name,&p);
+    move(10,10);
+    printw("Name: %s",name);
+    move(11,10);
+    printw("Number of game: %d",p.game_number);
+    move(12,10);
+    printw("Golds: %d",p.gold);
+    move(13,10);
+    printw("Date of begin: %s",ctime(&p.begin_game));
+    getch();
+    clear();
+    refresh();
+    return;
+}
 
 void guest(){
+    start_color();
+    // init_pair(1,COLOR_GREEN,COLOR_BLACK);
+    // init_pair(2,COLOR_RED,COLOR_BLACK);
     char name1[100] = "guest"; 
     char name2[100] = "guest"; 
     char name3[100] = "guest"; 
@@ -3213,12 +3800,63 @@ void guest(){
     guest_player.y_map2 = 0;
     guest_player.y_map3 = 0;
     guest_player.y_map4 = 0;
+    guest_player.hungry = 5;
+    guest_player.game_number = 0;
+    guest_player.win_last_game = 2;
+    game.maps[0].last_password = 0;
+    game.maps[1].last_password = 0;
+    game.maps[2].last_password = 0;
+    game.maps[3].last_password = 0;
+    time(&guest_player.priod);
     move_player(&game.maps[0],&guest_player,1);
+    clear();
+    refresh();
+    if(guest_player.win_last_game == 1){
+        move(10,10);
+        attron(COLOR_PAIR(2));
+        printw("Congratulations. You won!");
+        attroff(COLOR_PAIR(2));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        return;
+    }
+    else if(guest_player.win_last_game == 0){
+        move(10,10);
+        attron(COLOR_PAIR(1));
+        printw("Sorry. You lost the game!");
+        attroff(COLOR_PAIR(1));
+        refresh();
+        sleep(4);
+        clear();
+        refresh();
+        return;
+    }
+    else if(guest_player.win_last_game == -1){
+        return;
+    }
 }
 
-void save_player(char filename[100], struct Player * p){}
+void save_player(char filename[100], struct Player * p){
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        perror("Unable to open file");
+        return;
+    }
+    fwrite(p, sizeof(struct Player), 1, file);
+    fclose(file);
+}
 
-void load_player(char filename[100], struct Player * p){}
+void load_player(char filename[100], struct Player * p){
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("Unable to open file");
+        return;
+    }
+    fread(p, sizeof(struct Player), 1, file);
+    fclose(file);
+}
 
 int is_stair(struct Map *map,int x,int y){
     if(x == map->x_stair && y == map->y_stair){
@@ -3597,4 +4235,53 @@ void show_map(struct Map *map){
     refresh();
     getch();
     clear();
+}
+
+int is_spell_room(struct Map *map,int x,int y){
+    for(int i = 0; i < map->number_of_rooms; i++) {
+        int room_x1 = map->rooms[i].x;
+        int room_x2 = map->rooms[i].x + map->rooms[i].size;
+        int room_y1 = map->rooms[i].y;
+        int room_y2 = map->rooms[i].y + map->rooms[i].size;
+
+        if(x >= room_x1 && x <= room_x2 && y >= room_y1 && y <= room_y2) {
+            if(i == map->number_Spell_room){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int file_exists(char filename[100]) {
+    char perfix[20];
+    strcpy(perfix, "-map1.bin");
+    strcat(filename,perfix);
+    FILE *file;
+    if((file = fopen(filename,"rb"))){
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+
+void remove_file(char filename[100],int number){
+    char perfix[20];
+    switch (number)
+    {
+    case 1:
+        strcpy(perfix, "-map1.bin");
+        break;
+    case 2:
+        strcpy(perfix, "-map2.bin");
+        break;
+    case 3:
+        strcpy(perfix, "-map3.bin");
+        break;
+    case 4:
+        strcpy(perfix, "-map4.bin");
+        break;
+    }
+    strcat(filename,perfix);
+    remove(filename);
 }
