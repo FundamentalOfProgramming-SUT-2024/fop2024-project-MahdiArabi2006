@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 int size = 0;
+int game_over = 0;
 time_t start;
 time_t end;
 const char* a = "🗱";//خنجر
@@ -82,6 +83,7 @@ struct Player{
     int y_map4;
     int hungry;
     int game_number;
+    int total_game;
     time_t priod;
     int win_last_game;
     time_t begin_game;
@@ -227,7 +229,7 @@ void create_new_game(char name[100]);
 void continue_last_game(char name[100]);
 void seting_menu(char name[100]);
 void profile(char name[100]);
-void table_of_players();
+void table_of_players(char name[100]);
 void menus();
 void players_menus(char name[100]);
 void guest();
@@ -997,6 +999,14 @@ int is_food(struct Map *map,int x, int y){
 }
 
 void move_player(struct Map *map,struct Player *p,int number_map){
+    start_color();
+    init_pair(1,COLOR_RED,COLOR_BLACK);
+    init_pair(2,COLOR_GREEN,COLOR_BLACK);
+    if(game_over){
+        clear();
+        refresh();
+        return;
+    }
     if(p->win_last_game == 1){
         clear();
         refresh();
@@ -1019,6 +1029,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     if(number_map == 1){
         if(p->x_map1 == 0 && p->y_map1 == 0){
             int start_room = rand() % map->number_of_rooms;
+            while(start_room == map->number_room_stair){
+                start_room = rand() % map->number_of_rooms;
+            }
             p->x = 0;
             p->y = 0;
             p->last_map = number_map;
@@ -1036,6 +1049,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     else if(number_map == 2){
         if(p->x_map2 == 0 && p->y_map2 == 0){
             int start_room = rand() % map->number_of_rooms;
+            while(start_room == map->number_room_stair){
+                start_room = rand() % map->number_of_rooms;
+            }
             p->x = 0;
             p->y = 0;
             p->last_map = number_map;
@@ -1053,6 +1069,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     else if(number_map == 3){
         if(p->x_map3 == 0 && p->y_map3 == 0){
             int start_room = rand() % map->number_of_rooms;
+            while(start_room == map->number_room_stair){
+                start_room = rand() % map->number_of_rooms;
+            }
             p->x = 0;
             p->y = 0;
             p->last_map = number_map;
@@ -1070,6 +1089,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     else if(number_map == 4){
         if(p->x_map4 == 0 && p->y_map4 == 0){
             int start_room = rand() % map->number_of_rooms;
+            while(start_room == map->number_room_stair){
+                start_room = rand() % map->number_of_rooms;
+            }
             p->x = 0;
             p->y = 0;
             p->last_map = number_map;
@@ -1086,16 +1108,29 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     }
     move(0,0);
     printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-    mvprintw(p->y,p->x,"P");
+    if(p->color == 0){
+        mvprintw(p->y,p->x,"P");
+    }
+    else if(p->color == 1){
+        attron(COLOR_PAIR(1));
+        mvprintw(p->y,p->x,"P");
+        attroff(COLOR_PAIR(1));
+    }
+    else if(p->color == 2){
+        attron(COLOR_PAIR(2));
+        mvprintw(p->y,p->x,"P");
+        attroff(COLOR_PAIR(2));
+    }
     refresh();
     print(map,p->x,p->y);
     time_t time_start;
     while (1){
         if(number_map == 4 && p->x == map->x_end && p->y == map->y_end){
             p->win_last_game = 1;
+            game_over = 1;
             clear();
             refresh();
-            break;
+            return;
         }
         if(is_spell_room(map,p->x,p->y)){
             p->health -= 1;
@@ -1106,6 +1141,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(p->health <= 0){
             p->win_last_game = 0;
+            game_over = 1;
             return;
         }
         time_t time_end;
@@ -1137,49 +1173,145 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         if(c == 'w'){
             regular_move(p,map,0,-1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'x'){
             regular_move(p,map,0,1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'a'){
             regular_move(p,map,-1,0,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'd'){
             regular_move(p,map,1,0,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'e'){
             regular_move(p,map,1,-1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'q'){
             regular_move(p,map,-1,-1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'c'){
             regular_move(p,map,1,1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'z'){
             regular_move(p,map,-1,1,time_start);
             print(map,p->x,p->y);
-            mvprintw(p->y,p->x,"P");
+            if(p->color == 0){
+                mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
             refresh();
         }
         if(c == 'f'){
@@ -1187,49 +1319,145 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             if(c2 == 'w'){
                 f_move(p,map,0,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'x'){
                 f_move(p,map,0,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'd'){
                 f_move(p,map,1,0,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'a'){
                 f_move(p,map,-1,0,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'e'){
                 f_move(p,map,1,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'q'){
                 f_move(p,map,-1,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'c'){
                 f_move(p,map,1,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'z'){
                 f_move(p,map,-1,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
         }
@@ -1238,49 +1466,145 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             if(c2 == 'w'){
                 g_move(p,map,0,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'x'){
                 g_move(p,map,0,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'a'){
                 g_move(p,map,-1,0,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'd'){
                 g_move(p,map,1,0,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'e'){
                 g_move(p,map,1,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'q'){
                 g_move(p,map,-1,-1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'c'){
                 g_move(p,map,1,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
             if(c2 == 'z'){
                 g_move(p,map,-1,1,time_start);
                 print(map,p->x,p->y);
+                if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
+            }
+            else if(p->color == 1){
+                attron(COLOR_PAIR(1));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(1));
+            }
+            else if(p->color == 2){
+                attron(COLOR_PAIR(2));
+                mvprintw(p->y,p->x,"P");
+                attroff(COLOR_PAIR(2));
+            }
                 refresh();
             }
         }
@@ -1639,6 +1963,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             for(int j = 0; j < p->food_number; j++){
                 if(p->foods[j].type == 1){
                     p->hungry += 1;
+                    p->health += 200;
                     p->foods[j].type = 0;
                     p->food_number -= 1;
                     move(0,0);
@@ -1652,6 +1977,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             clear();
             refresh();
             p->win_last_game = -1;
+            game_over = 1;
             if(p->last_map == 1){
                 p->x_map1 = p->x;
                 p->y_map1 = p->y;
@@ -1937,6 +2263,10 @@ int panel(struct Player* p, struct Map *map) {
             p->have_master_key = 0;
             map->x_password_door = 0;
             map->y_password_door = 0;
+            int random = rand() % 10 + 1;//1-10
+            if(random == 1){
+                return 0;
+            }
             return 1;
         } else {
             move(7, 20);
@@ -1955,6 +2285,21 @@ int panel(struct Player* p, struct Map *map) {
         nocbreak();
         echo();
         scanw("%d", &password);
+        int random = rand() % 5 + 1;//1-5
+        if(random == 1){ // رمز معکوس
+            int temp = map->last_password;
+            int digit1 = temp % 10;
+            temp /= 10;
+            int digit2 = temp % 10;
+            temp /= 10;
+            int digit3 = temp % 10;
+            temp /= 10;
+            int digit4 = temp % 10;
+            map->last_password = digit1 * 1000 + digit2 * 100 + digit3 * 10 + digit4;
+        }
+        if(random == 2){//رمز متغیر
+            map->last_password = rand() % (9999 - 1000 + 1) + 1000;
+        }
         for (int i = 0; i < 3; i++) {
             if (map->last_password == password) {
                 clear();
@@ -2820,7 +3165,7 @@ void create_new_player(){
 		scanw("%s",email);
 	}
     struct Player p;
-    p.health = 2000;
+    p.level = 2;
     p.food_number = 0;
     p.gold = 0;
     p.have_master_key = 0;
@@ -2836,7 +3181,9 @@ void create_new_player(){
     p.y_map4 = 0;
     p.hungry = 5;
     p.game_number = 0;
+    p.total_game = 0;
     p.win_last_game = 2;
+    p.color = 0;
     time(&p.begin_game);
     save_player(name,&p);
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
@@ -2960,7 +3307,9 @@ int valid_name_and_password(char name[100], char password[20]) {
     FILE* players = fopen("Players.txt", "r");
     char name_existed[20];
     char password_existed[20];
-    while (fscanf(players, "%s %s", name_existed, password_existed) != EOF) {
+    char email[20];
+    int score,gild,number,time;
+    while (fscanf(players, "%s %s %s %d %d %d %d", name_existed, password_existed,email,&score,&gild,&number,&time) != EOF) {
         if (strcmp(name, name_existed) == 0 && strcmp(password, password_existed) == 0) {
             fclose(players);
             return 1;
@@ -3073,12 +3422,12 @@ void enter_player() {
     }
 }
 
-void table_of_players() {
+void table_of_players(char name[100]) {
 	clear();
 	refresh();
 	FILE* players = fopen("Players.txt", "r");
 	typedef struct {
-    	char name[100];
+    	char name_[100];
     	char password[20];
     	char email[20];
     	int score;
@@ -3090,7 +3439,7 @@ void table_of_players() {
     user* users = (user*)malloc(20 * sizeof(user));
     int size_users = 0;
     while (fscanf(players, "%s %s %s %d %d %d %d",
-                  users[size_users].name,
+                  users[size_users].name_,
                   users[size_users].password,
                   users[size_users].email,
                   &users[size_users].score,
@@ -3122,32 +3471,49 @@ void table_of_players() {
     move(4, 14);
     printw("-------------------------------------------------------------");
     move(5, 14);
-    printw("| Rank |         Name         | Score | Gold | Games | Time |");
+    printw("| Rank |         Name         | Score | Gold | Games | exp |");
     for (int i = 0; i < size_users; i++) {
         move(6 + i, 14);
         if (i == 0) {
             attron(A_REVERSE | COLOR_PAIR(1));
+            if(!strcmp(name,users[i].name_)){
+                move(6 + i,1);
+                printw("->");
+            }
 			move(6 + i,4);
 			printw("(Goat)");
 			move(6 + i, 14);
-            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_REVERSE | COLOR_PAIR(1));
         } else if (i == 1) {
             attron(A_BOLD | COLOR_PAIR(2));
-			move(6 + i,4);
+			if(!strcmp(name,users[i].name_)){
+                move(6 + i,1);
+                printw("->");
+            }
+            move(6 + i,4);
 			printw("(Legend)");
 			move(6 + i,14);
-            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_BOLD | COLOR_PAIR(2));
         } else if (i == 2) {
             attron(A_DIM | COLOR_PAIR(3));
-			move(6 + i,4);
+			if(!strcmp(name,users[i].name_)){
+                move(6 + i,1);
+                printw("->");
+            }
+            move(6 + i,4);
 			printw("(Good)");
 			move(6 + i,14);
-            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s%s|%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_,x, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
             attroff(A_DIM | COLOR_PAIR(3));
         } else {
-            printw("|%-6d|%-20s|%-7d|%-6d|%-7d|%-6d|", users[i].rank, users[i].name, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            if(!strcmp(name,users[i].name_)){
+                move(6 + i,1);
+                printw("->");
+            }
+            move(6 + i,14);
+            printw("|%-6d|%-20s|%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
         }
     }
 	move(6 + size_users,14);
@@ -3160,10 +3526,9 @@ void table_of_players() {
 void menus(){
 	clear();
 	label:
-    const char *choices[4] = {
+    const char *choices[3] = {
         "create new player",
         "Enter player",
-        "table of players",
         "Exit"
     };
     cbreak();
@@ -3177,7 +3542,7 @@ void menus(){
     int current_item = 0;
     int ch;
     while (1) {
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             if (i == current_item) {
                 wattron(menu, A_BOLD | COLOR_PAIR(2));
                 mvwprintw(menu, i + 1, 1, "%s", choices[i]);
@@ -3193,13 +3558,13 @@ void menus(){
         switch (ch) {
             case KEY_UP:
 				if(current_item == 0){
-					current_item = 4 - 1;
+					current_item = 3 - 1;
 				}else{
 					current_item -= 1;
 				}
                 break;
             case KEY_DOWN:
-				if(current_item == 0 || current_item == 1 || current_item == 2){
+				if(current_item == 0 || current_item == 1){
 					current_item += 1;
 				}else{
 					current_item = 0;
@@ -3223,13 +3588,7 @@ void menus(){
 					refresh();
 					goto label;
 				}
-				if(current_item == 2){
-					table_of_players();
-					clear();
-					refresh();
-					goto label;
-				}
-                if(current_item == 3){
+                if(current_item == 2){
                     clear();
 					refresh();
                     return;
@@ -3240,11 +3599,12 @@ void menus(){
 }
 
 void players_menus(char name[100]){
-	const char *choices[5] = {
+	const char *choices[6] = {
         "Create new game",
 		"Continue last game",
         "Setting menu",
         "Profile",
+        "Table of players",
         "Back"
     };
     cbreak();
@@ -3253,12 +3613,12 @@ void players_menus(char name[100]){
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     init_pair(2, COLOR_YELLOW, COLOR_BLUE);
-    WINDOW *menu = newwin(6,40,4,4);
+    WINDOW *menu = newwin(7,40,4,4);
     keypad(menu, TRUE);
     int current_item = 0;
     int ch;
     while (1) {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 6; i++) {
             if (i == current_item) {
                 wattron(menu, A_BOLD | COLOR_PAIR(2));
                 mvwprintw(menu, i + 1, 1, "%s", choices[i]);
@@ -3274,13 +3634,13 @@ void players_menus(char name[100]){
         switch (ch) {
             case KEY_UP:
 				if(current_item == 0){
-					current_item = 5 - 1;
+					current_item = 6 - 1;
 				}else{
 					current_item -= 1;
 				}
                 break;
             case KEY_DOWN:
-				if(current_item == 0 || current_item == 1 || current_item == 2 || current_item == 3){
+				if(current_item == 0 || current_item == 1 || current_item == 2 || current_item == 3 || current_item == 4){
 					current_item += 1;
 				}else{
 					current_item = 0;
@@ -3310,6 +3670,11 @@ void players_menus(char name[100]){
 					refresh();
 				}
                 if(current_item == 4){
+                    table_of_players(name);
+                    clear();
+                    refresh();
+                }
+                if(current_item == 5){
                     clear();
                     refresh();
                     return;
@@ -3390,9 +3755,9 @@ void create_new_game(char name[100]){
     time(&p.priod);
     p.win_last_game = 2;
     move_player(&game.maps[0],&p,1);
-    label:
     clear();
     refresh();
+    game_over = 0;
     if(p.win_last_game == 1){
         move(10,10);
         attron(COLOR_PAIR(2));
@@ -3402,32 +3767,31 @@ void create_new_game(char name[100]){
         sleep(4);
         clear();
         refresh();
+        p.game_number += 1;
+        p.total_game += 1;
+        p.last_map = 1;
+        p.win_last_game = 2;
         FILE* players = fopen("Players.txt","r");
         FILE* temp = fopen("temp.txt","w");
         char line[256];
-        time_t now;
-        time(&now);
         while (fgets(line, sizeof(line), players) != NULL) {
             char name_x[100], password[100], email[100];
             int gold, gold2, game_number, time_of_play;
-            sscanf(line, "%s %s %s %d %d %d %d", name, password, email, &gold, &gold2, &game_number, &time_of_play);
+            sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
             if(!strcmp(name,name_x)){
                 gold = p.gold;
                 gold2 = p.gold;
                 game_number = p.game_number;
-                time_of_play = (now - p.begin_game) / (60 * 60 * 24);
-                fprintf(temp, "%s %s %s %d %d %d %d\n", name, password, email, gold, gold2, game_number, time_of_play);
+                time_of_play = p.total_game;
+                fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
             }else{
                 fprintf(temp, "%s", line);
             }
         }
         fclose(players);
         fclose(temp);
-        remove("players.txt");
-        rename("temp.txt","players.txt");
-        p.game_number += 1;
-        p.last_map = 1;
-        p.win_last_game = 2;
+        remove("Players.txt");
+        rename("temp.txt","Players.txt");
         for(int i = 0; i < p.food_number; i++){
             p.foods[i].type = 0;
         }
@@ -3468,9 +3832,27 @@ void create_new_game(char name[100]){
         sleep(4);
         clear();
         refresh();
-        p.game_number += 1;
+        p.total_game += 1;
         p.last_map  = 1;
         p.win_last_game = 2;
+        FILE* players = fopen("Players.txt","r");
+        FILE* temp = fopen("temp.txt","w");
+        char line[256];
+        while (fgets(line, sizeof(line), players) != NULL) {
+            char name_x[100], password[100], email[100];
+            int gold, gold2, game_number, time_of_play;
+            sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
+            if(!strcmp(name,name_x)){
+                time_of_play = p.total_game;
+                fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
+            }else{
+                fprintf(temp, "%s", line);
+            }
+        }
+        fclose(players);
+        fclose(temp);
+        remove("Players.txt");
+        rename("temp.txt","Players.txt");
         for(int i = 0; i < p.food_number; i++){
             p.foods[i].type = 0;
         }
@@ -3559,6 +3941,7 @@ void continue_last_game(char name[100]){
     move_player(&game.maps[p.last_map - 1],&p,p.last_map);
     clear();
     refresh();
+    game_over = 0;
     if(p.win_last_game == 1){
         move(10,10);
         attron(COLOR_PAIR(2));
@@ -3569,6 +3952,28 @@ void continue_last_game(char name[100]){
         clear();
         refresh();
         p.game_number += 1;
+        p.total_game += 1;
+        FILE* players = fopen("Players.txt","r");
+        FILE* temp = fopen("temp.txt","w");
+        char line[256];
+        while (fgets(line, sizeof(line), players) != NULL) {
+            char name_x[100], password[100], email[100];
+            int gold, gold2, game_number, time_of_play;
+            sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
+            if(!strcmp(name,name_x)){
+                gold = p.gold;
+                gold2 = p.gold;
+                game_number = p.game_number;
+                time_of_play = p.total_game;
+                fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
+            }else{
+                fprintf(temp, "%s", line);
+            }
+        }
+        fclose(players);
+        fclose(temp);
+        remove("Players.txt");
+        rename("temp.txt","Players.txt");
         p.last_map = 1;
         p.win_last_game = 2;
         for(int i = 0; i < p.food_number; i++){
@@ -3611,7 +4016,25 @@ void continue_last_game(char name[100]){
         sleep(4);
         clear();
         refresh();
-        p.game_number += 1;
+        p.total_game += 1;
+        FILE* players = fopen("Players.txt","r");
+        FILE* temp = fopen("temp.txt","w");
+        char line[256];
+        while (fgets(line, sizeof(line), players) != NULL) {
+            char name_x[100], password[100], email[100];
+            int gold, gold2, game_number, time_of_play;
+            sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
+            if(!strcmp(name,name_x)){
+                time_of_play = p.total_game;
+                fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
+            }else{
+                fprintf(temp, "%s", line);
+            }
+        }
+        fclose(players);
+        fclose(temp);
+        remove("Players.txt");
+        rename("temp.txt","Players.txt");
         p.last_map  = 1;
         p.win_last_game = 2;
         for(int i = 0; i < p.food_number; i++){
