@@ -245,6 +245,8 @@ void show_map(struct Map *map);
 int is_spell_room(struct Map *map,int x,int y);
 int file_exists(char filename[100]);
 void remove_file(char filename[100],int number);
+void random_password();
+void show_password(char name[100]);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -838,6 +840,7 @@ int is_path_clear(struct Map *map, int x, int y) {
     }
     return 1;
 }
+
 int draw_corridor(struct Map *map, int start_x, int start_y, int end_x, int end_y) {
     int x = start_x;
     int y = start_y;
@@ -956,6 +959,7 @@ int is_pillor(struct Map *map,int x, int y){
     }
     return 0;
 }
+
 int is_trap(struct Map *map,int x, int y){
     for(int i = 0; i < 3; i++){
         if(map->traps[i].x_trap == x && map->traps[i].y_trap == y){
@@ -964,6 +968,7 @@ int is_trap(struct Map *map,int x, int y){
     }
     return 0;
 }
+
 int is_gold(struct Map *map,int x, int y){
     for(int i = 0; i < 3; i++){
         if(map->golds[i].x_gold == x && map->golds[i].y_gold == y){
@@ -972,6 +977,7 @@ int is_gold(struct Map *map,int x, int y){
     }
     return 0;
 }
+
 int is_spell(struct Map *map,int x, int y){
     for(int i = 0; i < 3; i++){
         if(map->spells[i].x_spell == x && map->spells[i].y_spell == y){
@@ -980,6 +986,7 @@ int is_spell(struct Map *map,int x, int y){
     }
     return 0;
 }
+
 int is_wepon(struct Map *map,int x, int y){
     for(int i = 0; i < 3; i++){
         if(map->wepons[i].x_wepon == x && map->wepons[i].y_wepon == y){
@@ -3125,36 +3132,55 @@ int is_room_and_index(struct Map *map,int x,int y){
     return 0;
 }
 
-void create_new_player(){
-	clear();
-	refresh();
-	move(0,0);
-	printw("Press any key to exit");
-	FILE* players = fopen("Players.txt","a");
-	move(1,0);
-	char name[100];
-	printw("Name: ");
-	move(1,7);
-	scanw("%s",name);
-	while(!control_name(name)){
-		move(1,0);
-		clrtoeol();
-		printw("Name: ");
-		move(1,7);
-		scanw("%s",name);
-	}
-	move(2,0);
-	char password[20];
-	printw("password: ");
-	move(2,11);
-	scanw("%s",password);
-	while(!control_password(password)){
-	 	move(2,0);
-		clrtoeol();
-		printw("password: ");
-		move(2,11);
-		scanw("%s",password);
-	}
+void create_new_player() {  
+    clear();  
+    refresh();  
+    FILE* players = fopen("Players.txt", "a");  
+    move(1, 0);  
+    char name[100];  
+    printw("Name: ");  
+    move(1, 7);  
+    scanw("%s", name);  
+    while (!control_name(name)) {  
+        move(1, 0);  
+        clrtoeol();  
+        printw("Name: ");  
+        move(1, 7);  
+        scanw("%s", name);  
+    }     
+    char password[20];  
+    int c;  
+    while (1) {  
+        move(0, 0);  
+        printw("Press 'a' to create a random password or 'b' to enter your password");  
+        cbreak();  
+        noecho();  
+        c = getch();    
+        if (c == 'a') {  
+            random_password();  
+            break;  
+        } else if (c == 'b') {  
+            break;  
+        }  
+    }
+    move(2, 0);  
+    printw("password: ");  
+    move(2, 11);  
+    nocbreak();  
+    echo();  
+    scanw("%s", password);  
+    while (!control_password(password)) {  
+        move(2, 0);  
+        clrtoeol();  
+        printw("password: ");  
+        move(2, 11);  
+        scanw("%s", password);  
+    }
+    move(0,0);
+    clrtoeol();
+    move(10,10);
+    clrtoeol();
+    refresh();
 	char email[20];
 	move(3,0);
 	printw("email: ");
@@ -3190,9 +3216,9 @@ void create_new_player(){
     time(&p.begin_game);
     save_player(name,&p);
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
-	fclose(players);
-	getch();
-	return;
+    fclose(players);  
+    getch();  
+    return;  
 }
 
 int control_name(char name[100]) {
@@ -3391,6 +3417,22 @@ void enter_player() {
 					move(2,0);
 					printw("Password: ");
 					char password[20];
+                    move(0,0);
+                    printw("Press 'a' if you forget your password(it will show the first) or 'b' to enter your password");
+                    cbreak();
+                    noecho();
+                    int c;
+                    while(1){
+                        c = getch();
+                        if(c == 'a'){
+                            show_password(name);
+                            break;
+                        }else{
+                            break;
+                        }
+                    }
+                    nocbreak();
+                    echo();
 					move(2,11);
 					scanw("%s", password);
 					while (!valid_name_and_password(name, password)) {
@@ -3602,7 +3644,9 @@ void menus(){
 }
 
 void players_menus(char name[100]){
-	const char *choices[6] = {
+	clear();
+    refresh();
+    const char *choices[6] = {
         "Create new game",
 		"Continue last game",
         "Setting menu",
@@ -4710,4 +4754,59 @@ void remove_file(char filename[100],int number){
     }
     strcat(filename,perfix);
     remove(filename);
+}
+
+void random_password(){
+    char lower[26] = {'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'};
+    char captal[26] = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z'};
+    char number[10] = {'0','1','2','3','4','5','6','7','8','9'};
+    char password[20];
+    int low_count = rand() % 4 + 3;
+    int cap_count = rand() % 4 + 3;
+    int num_count = rand() % 4 + 3;
+    int size = 0;
+    int pointer = 0;
+    while(pointer != low_count){
+        int indx = rand() % 26;
+        password[size++] = lower[indx];
+        pointer += 1;
+    }
+    pointer = 0;
+    while(pointer != cap_count){
+        int indx = rand() % 26;
+        password[size++] = captal[indx];
+        pointer += 1;
+    }
+    pointer = 0;
+    while(pointer != num_count){
+        int indx = rand() % 10;
+        password[size++] = number[indx];
+        pointer += 1;
+    }
+    move(10,10);
+    printw("%s",password);
+    refresh();
+    return;
+}
+
+void show_password(char name[100]){
+    FILE* players = fopen("Players.txt", "r");
+    char name_existed[20];
+    char password_existed[20];
+    char email[20];
+    int score,gild,number,time;
+    while (fscanf(players, "%s %s %s %d %d %d %d", name_existed, password_existed,email,&score,&gild,&number,&time) != EOF) {
+        if (strcmp(name, name_existed) == 0) {
+            fclose(players);
+            break;
+        }
+    }
+    char s_password[4];
+    for(int i = 0; i < 4; i++){
+        s_password[i] = password_existed[i];
+    }
+    s_password[4] = '\0';
+    move(10,10);
+    printw("%s",s_password);
+    return;
 }
