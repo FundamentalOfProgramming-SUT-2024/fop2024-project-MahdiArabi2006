@@ -5,6 +5,14 @@
 #include <locale.h> 
 #include <unistd.h>
 #include <string.h>
+#include <pthread.h>
+char *music_list[3] = {
+    "look on down from the bridge.mp3",
+    "between the bars.mp3",
+    "bache nane.mp3"
+};
+int choice_mu;
+int music_playing = 0;
 int size = 0;
 int game_over = 0;
 time_t start;
@@ -247,6 +255,10 @@ int file_exists(char filename[100]);
 void remove_file(char filename[100],int number);
 void random_password();
 void show_password(char name[100]);
+void music_menu();
+int music_choice();
+void *play_music(void *arg);
+void stop_music();
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -4140,7 +4152,7 @@ void seting_menu(char name[100]){
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     init_pair(2, COLOR_YELLOW, COLOR_BLUE);
-    WINDOW *menu = newwin(5,40,4,4);
+    WINDOW *menu = newwin(7,40,4,4);
     keypad(menu, TRUE);
     int current_item = 0;
     int ch;
@@ -4210,6 +4222,7 @@ void seting_menu(char name[100]){
 					refresh();
 				}
 				if(current_item == 2){
+                    music_menu();
 					clear();
 					refresh();
 				}
@@ -4809,4 +4822,130 @@ void show_password(char name[100]){
     move(10,10);
     printw("%s",s_password);
     return;
+}
+
+void* play_music(void* arg) {
+    char* music_file = (char*)arg;
+    music_playing = 1;
+    char command[512];
+    snprintf(command, sizeof(command), "cvlc --play-and-exit \"%s\" >/dev/null 2>&1 &", music_file);
+    system(command);
+    return NULL;
+}
+
+void stop_music() {
+    if (music_playing) {
+        system("pkill -f vlc");
+        music_playing = 0;
+    } else {
+        mvprintw(0, 0, "No music is currently playing.");
+        refresh();
+    }
+}
+
+int music_choice() {
+    clear();
+    refresh();
+    char *music_list[3] = {
+    "look on down from the bridge.mp3",
+    "between the bars.mp3",
+    "bache nane.mp3"
+    };
+    mvprintw(0, 0, "Select a music:");
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(5, 40, 4, 4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 3; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", music_list[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", music_list[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+                current_item = (current_item == 0) ? 2 : current_item - 1;
+                break;
+            case KEY_DOWN:
+                current_item = (current_item == 2) ? 0 : current_item + 1;
+                break;
+            case 10:
+                delwin(menu);
+                clear();
+                refresh();
+                return current_item;
+        }
+    }
+}
+
+void music_menu() {
+    clear();
+    refresh();
+    label:
+    const char* choices[3] = {
+        "Select a music",
+        "Stop the music",
+        "Back"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(6, 40, 4, 4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 3; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+                current_item = (current_item == 0) ? 2 : current_item - 1;
+                break;
+            case KEY_DOWN:
+                current_item = (current_item == 2) ? 0 : current_item + 1;
+                break;
+            case 10:
+                if (current_item == 0) {
+                    int choice = music_choice();
+                    pthread_t music_thread;
+                    pthread_create(&music_thread, NULL, play_music, (void*)music_list[choice]);
+                    goto label;
+                } else if (current_item == 1) {
+                    stop_music();
+                    goto label;
+                } else if (current_item == 2) {
+                    delwin(menu);
+                    return;
+                }
+                break;
+        }
+    }
 }
