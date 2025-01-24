@@ -234,8 +234,8 @@ void save_map(char filename[100], struct Map *map,int number);
 void load_map(char filename[100], struct Map *map,int number);
 int is_room(struct Map *map, int x, int y);
 void print_corridor(struct Map *map);
-void print_room(struct Map *map);
-void print(struct Map *map,int x, int y);
+void print_room(struct Map *map,struct Player *p);
+void print(struct Map *map,int x, int y,struct Player *p);
 void make_corrider_is_seen(struct Map *map,int x, int y);
 void check_corrider(struct Map *map,int x, int y);
 int is_room_and_index(struct Map *map,int x,int y);
@@ -271,6 +271,9 @@ void music_menu();
 int music_choice();
 void *play_music(void *arg);
 void stop_music();
+void move_demon(struct Map *map,struct Player *p);
+int witch_room(struct Map *map, int x, int y);
+void print_after_move_demon(struct Map *map,int x, int y);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -1199,7 +1202,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         attroff(COLOR_PAIR(2));
     }
     refresh();
-    print(map,p->x,p->y);
+    print(map,p->x,p->y,p);
     time_t time_start;
     while (1){
         if(number_map == 4 && p->x == map->x_end && p->y == map->y_end){
@@ -1249,7 +1252,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         int c = getch();
         if(c == 'w'){
             regular_move(p,map,0,-1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1267,7 +1271,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'x'){
             regular_move(p,map,0,1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1285,7 +1290,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'a'){
             regular_move(p,map,-1,0,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1303,7 +1309,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'd'){
             regular_move(p,map,1,0,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1321,7 +1328,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'e'){
             regular_move(p,map,1,-1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1339,7 +1347,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'q'){
             regular_move(p,map,-1,-1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1357,7 +1366,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'c'){
             regular_move(p,map,1,1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1375,7 +1385,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'z'){
             regular_move(p,map,-1,1,time_start);
-            print(map,p->x,p->y);
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
             if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1395,7 +1406,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             int c2 = getch();
             if(c2 == 'w'){
                 f_move(p,map,0,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1413,7 +1425,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'x'){
                 f_move(p,map,0,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1431,7 +1444,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'd'){
                 f_move(p,map,1,0,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1449,7 +1463,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'a'){
                 f_move(p,map,-1,0,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1467,7 +1482,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'e'){
                 f_move(p,map,1,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1485,7 +1501,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'q'){
                 f_move(p,map,-1,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1503,7 +1520,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'c'){
                 f_move(p,map,1,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1521,7 +1539,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'z'){
                 f_move(p,map,-1,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1542,7 +1561,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             int c2 = getch();
             if(c2 == 'w'){
                 g_move(p,map,0,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1560,7 +1580,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'x'){
                 g_move(p,map,0,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1578,7 +1599,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'a'){
                 g_move(p,map,-1,0,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1596,7 +1618,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'd'){
                 g_move(p,map,1,0,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1614,7 +1637,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'e'){
                 g_move(p,map,1,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1632,7 +1656,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'q'){
                 g_move(p,map,-1,-1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1650,7 +1675,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'c'){
                 g_move(p,map,1,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -1668,7 +1694,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'z'){
                 g_move(p,map,-1,1,time_start);
-                print(map,p->x,p->y);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
                 if(p->color == 0){
                 mvprintw(p->y,p->x,"P");
             }
@@ -2868,7 +2895,7 @@ void print_corridor(struct Map *map){
     }
 }
 
-void print_room(struct Map *map){
+void print_room(struct Map *map,struct Player *p){
     start_color();
     init_pair(1,COLOR_RED,COLOR_BLACK);
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
@@ -3211,11 +3238,11 @@ void check_corrider(struct Map *map,int x, int y){
     }
 }
 
-void print(struct Map *map,int x, int y){
+void print(struct Map *map,int x, int y,struct Player *p){
     print_corridor(map);
-    print_room(map);
+    print_room(map,p);
     if(is_room(map,x,y)){
-        print_room(map);
+        print_room(map,p);
     }
     else{
         check_corrider(map,x,y);
@@ -5079,174 +5106,176 @@ int is_demon(struct Map *map,int x, int y){
     return 0;    
 }
 
-void move_demon(struct Map *map,int x,int y,struct Player *p,int type){
-    if(x + 1 == p->x && y == p->y){
-        if(type == 1){
-            p->health -= 10;
+void move_demon(struct Map *map,struct Player *p){
+    for(int i = 0; i < 5; i++){
+        if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 2){
-            p->health -= 20;
+        else if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon - 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 3){
-            p->health -= 30;
+        else if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon + 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 4){
-            p->health -= 40;
+        else if(map->demons[i].x_demon == p->x && map->demons[i].y_demon - 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 5){
-            p->health -= 50;
+        else if(map->demons[i].x_demon == p->x && map->demons[i].y_demon + 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x + 1 == p->x && y - 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
+        else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon - 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 2){
-            p->health -= 20;
+        else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 3){
-            p->health -= 30;
+        else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon + 1 == p->y){
+            if(map->demons[i].type == 1){
+                p->health -= 10;
+            }
+            if(map->demons[i].type == 2){
+                p->health -= 20;
+            }
+            if(map->demons[i].type == 3){
+                p->health -= 30;
+            }
+            if(map->demons[i].type == 4){
+                p->health -= 40;
+            }
+            if(map->demons[i].type == 5){
+                p->health -= 50;
+            }
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
         }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x + 1 == p->x && y + 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x == p->x && y - 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x == p->x && y + 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x - 1 == p->x && y - 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x - 1 == p->x && y == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
-    }
-    else if(x - 1 == p->x && y + 1 == p->y){
-        if(type == 1){
-            p->health -= 10;
-        }
-        if(type == 2){
-            p->health -= 20;
-        }
-        if(type == 3){
-            p->health -= 30;
-        }
-        if(type == 4){
-            p->health -= 40;
-        }
-        if(type == 5){
-            p->health -= 50;
-        }
-        move(0,0);
-        clrtoeol();
-        printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
-        refresh();
     }
     for(int i = 0; i < 5; i++){
         int resualt_or_index_room = witch_room(map,p->x,p->y);
@@ -5254,26 +5283,30 @@ void move_demon(struct Map *map,int x,int y,struct Player *p,int type){
             if(map->demons[i].number_of_room == resualt_or_index_room - 1){
                 if(map->demons[i].type == 3 || map->demons[i].type == 5){
                     if(p->step <= 5){
-                        if(x < p->x){
-                            if(is_not_wall(map,x + 1,y) && !is_pillor(map,x + 1,y) && (x + 1 != p->x || y != p->y)){
+                        if(map->demons[i].x_demon < p->x){
+                            if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
+                                print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].x_demon += 1;
                                 return;
                             }
                         }
-                        if(x > p->x){
-                            if(is_not_wall(map,x - 1,y) && !is_pillor(map,x - 1,y) && (x - 1 != p->x || y != p->y)){
+                        if(map->demons[i].x_demon > p->x){
+                            if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
+                                print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].x_demon -= 1;
                                 return;
                             }
                         }
-                        if(y < p->y){
-                            if(is_not_wall(map,x,y + 1) && !is_pillor(map,x,y + 1) && (x != p->x || y + 1 != p->y)){
+                        if(map->demons[i].y_demon < p->y){
+                            if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
+                                print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].y_demon += 1;
                                 return;
                             }
                         }
-                        if(y > p->y){
-                            if(is_not_wall(map,x,y - 1) && !is_pillor(map,x,y - 1) && (x != p->x || y - 1 != p->y)){
+                        if(map->demons[i].y_demon > p->y){
+                            if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
+                                print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].y_demon -= 1;
                                 return;
                             }
@@ -5281,26 +5314,30 @@ void move_demon(struct Map *map,int x,int y,struct Player *p,int type){
                     }
                 }
                 if(map->demons[i].type == 4){
-                    if(x < p->x){
-                        if(is_not_wall(map,x + 1,y) && !is_pillor(map,x + 1,y) && (x + 1 != p->x || y != p->y)){
+                    if(map->demons[i].x_demon < p->x){
+                        if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
+                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                             map->demons[i].x_demon += 1;
                             return;
                         }
                     }
-                    if(x > p->x){
-                        if(is_not_wall(map,x - 1,y) && !is_pillor(map,x - 1,y) && (x - 1 != p->x || y != p->y)){
+                    if(map->demons[i].x_demon > p->x){
+                        if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
+                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                             map->demons[i].x_demon -= 1;
                             return;
                         }
                     }
-                    if(y < p->y){
-                        if(is_not_wall(map,x,y + 1) && !is_pillor(map,x,y + 1) && (x != p->x || y + 1 != p->y)){
+                    if(map->demons[i].y_demon < p->y){
+                        if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
+                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                             map->demons[i].y_demon += 1;
                             return;
                         }
                     }
-                    if(y > p->y){
-                        if(is_not_wall(map,x,y - 1) && !is_pillor(map,x,y - 1) && (x != p->x || y - 1 != p->y)){
+                    if(map->demons[i].y_demon > p->y){
+                        if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
+                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                             map->demons[i].y_demon -= 1;
                             return;
                         }
@@ -5323,5 +5360,109 @@ int witch_room(struct Map *map, int x, int y) {
         }
     }
     return 0;
+}
+
+void print_after_move_demon(struct Map *map,int x, int y){
+    start_color();
+    init_pair(1,COLOR_RED,COLOR_BLACK);
+    init_pair(2,COLOR_GREEN,COLOR_BLACK);
+    init_pair(3,COLOR_YELLOW,COLOR_BLACK);
+    init_pair(4,COLOR_YELLOW,COLOR_BLACK);
+    if(x == map->x_create_paasword && y == map->y_create_paasword){
+        move(y,x);
+        printw("&");
+        return;
+    }
+    if(x == map->x_stair && y == map->y_stair){
+        move(y,x);
+        printw("<");
+        return;
+    }
+    if(x == map->x_Master_Key && y == map->y_Master_Key){
+        move(y,x);
+        attron(COLOR_PAIR(3));
+        printw("%s",r);
+        attroff(COLOR_PAIR(3));
+        refresh();
+        return;
+    }
+    for(int j = 0; j < 3; j++){
+        if(x == map->foods[j].x_food && y == map->foods[j].y_food){
+            move(map->foods[j].y_food,map->foods[j].x_food);
+            if(map->foods[j].type == 1){
+                printw("%s",l);
+                return;
+            }
+            if(map->foods[j].type == 2){
+                printw("%s",o);
+                return;
+            }
+            if(map->foods[j].type == 3){
+                printw("%s",u);
+                return;
+            }
+            if(map->foods[j].type == 4){
+                printw("%s",n);
+                return;
+            }
+        }
+    }
+    for(int j = 0; j < 3; j++){
+        if(x == map->spells[j].x_spell && y == map->spells[j].y_spell){
+            move(map->spells[j].y_spell,map->spells[j].x_spell);
+            if(map->spells[j].type == 1){
+                printw("%s",f);
+                return;
+            }
+            if(map->spells[j].type == 2){
+                printw("%s",g);
+                return;
+            }
+            if(map->spells[j].type == 3){
+                printw("%s",h);
+                return;
+            }
+        }
+    }
+    for(int j = 0; j < 3; j++){
+        if(x == map->wepons[j].x_wepon && y == map->spells[j].y_spell){
+            move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
+            if(map->wepons[j].type == 1){
+                printw("%s",a);
+                return;
+            }
+            if(map->wepons[j].type == 2){
+                printw("%s",b);
+                return;
+            }
+            if(map->wepons[j].type == 3){
+                printw("%s",c);
+                return;
+            }
+            if(map->wepons[j].type == 4){
+                printw("%s",d);
+                return;
+            }
+            if(map->wepons[j].type == 5){
+                printw("%s",e);
+                return;
+            }
+        }
+    }
+    for(int j = 0; j < 3; j++){
+        if(x == map->golds[j].x_gold && y == map->golds[j].y_gold){
+            move(map->golds[j].y_gold,map->golds[j].x_gold);
+            if(map->golds[j].is_black){
+                printw("%s",v);
+                return;
+            }else{
+                printw("%s",m);
+                return;
+            }
+        }
+    }
+    move(y,x);
+    printw(" ");
+    return;
 }
 
