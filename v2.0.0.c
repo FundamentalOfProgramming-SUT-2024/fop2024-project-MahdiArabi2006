@@ -17,8 +17,8 @@ int size = 0;
 int game_over = 0;
 time_t start;
 time_t end;
-const char* a = "🗱";//خنجر
-const char* b = "⚒️";//گرز
+const char* b = "🗱";//خنجر
+const char* a = "⚒️";//گرز
 const char* c = "🪄";//عصای جادویی
 const char* d = "➳";//تیر عادی
 const char* e = "🗡";//شمشیر
@@ -56,6 +56,9 @@ struct Wepon{
     int y_wepon;
     int number_room;
     int type;//1-5
+    int is_use;
+    int is_exist;
+    int cllect;
 };
 #pragma pack()
 #pragma pack(1)
@@ -98,6 +101,7 @@ struct Player{
     int color;
     int level;
     int step;
+    int type_wepon_chosen;
 };
 #pragma pack()
 #pragma pack(1)
@@ -183,6 +187,8 @@ struct Map{
     int y_end;
     int has_treasure_room;
     struct Demon demons[5];
+    int number_of_wepons_use;
+    struct Wepon wepons_use[300];
 };
 #pragma pack()
 #pragma pack(1)
@@ -801,7 +807,7 @@ void generate_map(struct Map *map,char name[100],int number) {
         while(map->wepons[i].number_room == map->number_Spell_room){
             map->wepons[i].number_room = rand() % map->number_of_rooms;
         }
-        map->wepons[i].type = rand() % 5 + 1;
+        map->wepons[i].type = rand() % 4 + 2;
     }
     for(int i = 0; i < 3; i++){
         map->wepons[i].x_wepon = 0;
@@ -2100,6 +2106,587 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             return;
         }
+        if(c == 'W'){
+            if(p->type_wepon_chosen == 0){
+                move(1,0);
+                printw("You are not carry a wepon!");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                p->type_wepon_chosen = 0;
+                move(1,0);
+                printw("Your weapon is placed in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }
+        }
+        if(c == 'l'){
+            if(p->type_wepon_chosen != 0){
+                move(1,0);
+                printw("First, put the previous weapon in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                p->type_wepon_chosen = 1;
+                move(1,0);
+                printw("Weapon changed to mace");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }
+        }
+        if(c == 'k'){
+            if(p->type_wepon_chosen != 0){
+                move(1,0);
+                printw("First, put the previous weapon in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                int found = 0;
+                for(int j = 0; j < p->wepon_number; j++){
+                    if(p->wepons[j].type == 2 && p->wepons[j].is_exist){
+                        found = 1;
+                        p->type_wepon_chosen = 2;
+                        move(1,0);
+                        printw("Weapon changed to dagger");
+                        refresh();
+                        sleep(1);
+                        move(1,0);
+                        clrtoeol();
+                        break;
+                    }
+                }
+                if(!found){
+                   move(1,0);
+                    printw("You have used up all your daggers.");
+                    refresh();
+                    sleep(1);
+                    move(1,0);
+                    clrtoeol();
+                    refresh(); 
+                }
+            }
+        }
+        if(c == 'v'){
+            if(p->type_wepon_chosen != 0){
+                move(1,0);
+                printw("First, put the previous weapon in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                int found = 0;
+                for(int j = 0; j < p->wepon_number; j++){
+                    if(p->wepons[j].type == 3 && p->wepons[j].is_exist){
+                        found = 1;
+                        p->type_wepon_chosen = 3;
+                        move(1,0);
+                        printw("Weapon changed to magic wand");
+                        refresh();
+                        sleep(1);
+                        move(1,0);
+                        clrtoeol();
+                        refresh();
+                        break;
+                    }
+                }
+                if(!found){
+                   move(1,0);
+                    printw("You have used up all your magic wand.");
+                    refresh();
+                    sleep(1);
+                    move(1,0);
+                    clrtoeol();
+                    refresh(); 
+                }
+            }
+        }
+        if(c == 'n'){
+            if(p->type_wepon_chosen != 0){
+                move(1,0);
+                printw("First, put the previous weapon in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                int found = 0;
+                for(int j = 0; j < p->wepon_number; j++){
+                    if(p->wepons[j].type == 4 && p->wepons[j].is_exist){
+                        found = 1;
+                        p->type_wepon_chosen = 4;
+                        move(1,0);
+                        printw("Weapon changed to normal arrow");
+                        refresh();
+                        sleep(1);
+                        move(1,0);
+                        clrtoeol();
+                        refresh();
+                        break;
+                    }
+                }
+                if(!found){
+                   move(1,0);
+                    printw("You have used up all your normal arrow.");
+                    refresh();
+                    sleep(1);
+                    move(1,0);
+                    clrtoeol();
+                    refresh(); 
+                }
+            }
+        }
+        if(c == 'h'){
+            if(p->type_wepon_chosen != 0){
+                move(1,0);
+                printw("First, put the previous weapon in the backpack.");
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+            }else{
+                int found = 0;
+                for(int j = 0; j < p->wepon_number; j++){
+                    if(p->wepons[j].type == 5){
+                        found = 1;
+                        p->type_wepon_chosen = 5;
+                        move(1,0);
+                        printw("Weapon changed to sword");
+                        refresh();
+                        sleep(1);
+                        move(1,0);
+                        clrtoeol();
+                        refresh();
+                        break;
+                    }
+                }
+                if(!found){
+                    move(1,0);
+                    printw("You have used up all your sword.");
+                    refresh();
+                    sleep(1);
+                    move(1,0);
+                    clrtoeol();
+                    refresh(); 
+                }
+            }
+        }
+        if(c == 32){
+            if(p->type_wepon_chosen == 1){
+                for(int j = 0; j < 5; j++){
+                    if(p->x + 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x + 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x + 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 5;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 5");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                }
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+            }
+            if(p->type_wepon_chosen == 5){
+                for(int j = 0; j < 5; j++){
+                    if(p->x + 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x + 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x + 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                    if(p->x - 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
+                        map->demons[j].healt -= 10;
+                        if(map->demons[j].healt <= 0){
+                            move(1,0);
+                            printw("You kill the demon!");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                            print_after_move_demon(map,map->demons[j].x_demon,map->demons[j].y_demon);
+                            map->demons[j].x_demon = 0;
+                            map->demons[j].y_demon = 0;
+                        }else{
+                            move(1,0);
+                            printw("You damage the demon 10");
+                            refresh();
+                            sleep(1);
+                            move(1,0);
+                            clrtoeol();
+                            refresh();
+                        }
+                        continue;
+                    }
+                }
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+            }
+        }
     }
 }
 
@@ -2178,6 +2765,16 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
     }
     else if(!strcmp(state,"wepon")){
         p->wepons[p->wepon_number].type = map->wepons[index_wepon(map,x,y)].type;
+        p->wepons[p->wepon_number].is_exist = 1;
+        if(p->wepons[p->wepon_number].type == 2){
+            p->wepons[p->wepon_number].cllect = 10;
+        }
+        if(p->wepons[p->wepon_number].type == 3){
+            p->wepons[p->wepon_number].cllect = 8;
+        }
+        if(p->wepons[p->wepon_number].type == 4){
+            p->wepons[p->wepon_number].cllect = 20;
+        }
         f_wepon(map,x,y);
         move(1,0);
         printw("You got a wepon");
@@ -3331,7 +3928,8 @@ void create_new_player() {
     p.gold = 0;
     p.have_master_key = 0;
     p.spell_number = 0;
-    p.wepon_number = 0;
+    p.wepon_number = 1;
+    p.wepons[0].type = 1;
     p.x_map1 = 0;
     p.x_map2 = 0;
     p.x_map3 = 0;
@@ -3346,6 +3944,7 @@ void create_new_player() {
     p.win_last_game = 2;
     p.color = 0;
     p.step = 0;
+    p.type_wepon_chosen = 1;
     time(&p.begin_game);
     save_player(name,&p);
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
@@ -3920,7 +4519,8 @@ void create_new_game(char name[100]){
     p.gold = 0;
     p.have_master_key = 0;
     p.spell_number = 0;
-    p.wepon_number = 0;
+    p.wepon_number = 1;
+    p.wepons[0].type = 1;
     p.x_map1 = 0;
     p.x_map2 = 0;
     p.x_map3 = 0;
@@ -3933,6 +4533,7 @@ void create_new_game(char name[100]){
     p.win_last_game = 2;
     p.last_map = 1;
     p.step = 0;
+    p.type_wepon_chosen = 1;
     time(&p.priod);
     p.win_last_game = 2;
     move_player(&game.maps[0],&p,1);
@@ -3987,7 +4588,8 @@ void create_new_game(char name[100]){
         p.gold = 0;
         p.have_master_key = 0;
         p.spell_number = 0;
-        p.wepon_number = 0;
+        p.wepon_number = 1;
+        p.wepons[0].type = 1;
         p.x_map1 = 0;
         p.x_map2 = 0;
         p.x_map3 = 0;
@@ -3998,6 +4600,7 @@ void create_new_game(char name[100]){
         p.y_map4 = 0;
         p.hungry = 5;
         p.step = 0;
+        p.type_wepon_chosen = 1;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4049,7 +4652,8 @@ void create_new_game(char name[100]){
         p.gold = 0;
         p.have_master_key = 0;
         p.spell_number = 0;
-        p.wepon_number = 0;
+        p.wepon_number = 1;
+        p.wepons[0].type = 1;
         p.x_map1 = 0;
         p.x_map2 = 0;
         p.x_map3 = 0;
@@ -4060,6 +4664,7 @@ void create_new_game(char name[100]){
         p.y_map4 = 0;
         p.hungry = 5;
         p.step = 0;
+        p.type_wepon_chosen = 1;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4173,7 +4778,8 @@ void continue_last_game(char name[100]){
         p.gold = 0;
         p.have_master_key = 0;
         p.spell_number = 0;
-        p.wepon_number = 0;
+        p.wepon_number = 1;
+        p.wepons[0].type = 1;
         p.x_map1 = 0;
         p.x_map2 = 0;
         p.x_map3 = 0;
@@ -4184,6 +4790,7 @@ void continue_last_game(char name[100]){
         p.y_map4 = 0;
         p.hungry = 5;
         p.step = 0;
+        p.type_wepon_chosen = 1;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4235,7 +4842,8 @@ void continue_last_game(char name[100]){
         p.gold = 0;
         p.have_master_key = 0;
         p.spell_number = 0;
-        p.wepon_number = 0;
+        p.wepon_number = 1;
+        p.wepons[0].type = 1;
         p.x_map1 = 0;
         p.x_map2 = 0;
         p.x_map3 = 0;
@@ -4246,6 +4854,7 @@ void continue_last_game(char name[100]){
         p.y_map4 = 0;
         p.hungry = 5;
         p.step = 0;
+        p.type_wepon_chosen = 1;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4400,7 +5009,8 @@ void guest(){
     guest_player.gold = 0;
     guest_player.have_master_key = 0;
     guest_player.spell_number = 0;
-    guest_player.wepon_number = 0;
+    guest_player.wepon_number = 1;
+    guest_player.wepons[0].type = 1;
     guest_player.x_map1 = 0;
     guest_player.x_map2 = 0;
     guest_player.x_map3 = 0;
@@ -4505,32 +5115,36 @@ void fightroom(struct Player *p){
 void show_wepons(struct Player *p){
     int type1 = 0,type2 = 0,type3 = 0,type4 = 0,type5 = 0;
     for(int i = 0; i < p->wepon_number; i++){
-        if(p->wepons[i].type == 1){
-            type1 += 1;
+        type1 = 1;
+        if(p->wepons[i].type == 2 && p->wepons[i].is_exist){
+            type2 += p->wepons[i].cllect;
         }
-        if(p->wepons[i].type == 2){
-            type2 += 1;
+        if(p->wepons[i].type == 3 && p->wepons[i].is_exist){
+            type3 += p->wepons[i].cllect;
         }
-        if(p->wepons[i].type == 3){
-            type3 += 1;
-        }
-        if(p->wepons[i].type == 4){
-            type4 += 1;
+        if(p->wepons[i].type == 4 && p->wepons[i].is_exist){
+            type4 += p->wepons[i].cllect;
         }
         if(p->wepons[i].type == 5){
-            type5 += 1;
+            if(type5 == 0){
+                type5 += 1;
+            }
         }
     }
     move(8,20);
-    printw("%d   %s",type1,a);
+    printw("Short range wepons:");
     move(9,20);
-    printw("%d   %s",type2,b);
+    printw("%s  -count:  %d  -key; l  -Power: 12",a,type1);
     move(10,20);
-    printw("%d   %s",type3,c);
+    printw("%s  -count:  %d  -key; h  -Power: 10",e,type5);
     move(11,20);
-    printw("%d   %s",type4,d);
+    printw("Long range wepons:");
     move(12,20);
-    printw("%d   %s",type5,e);
+    printw("%s  -count:  %d  -key; k  -Distance: 5  -Power: 12",b,type2);
+    move(13,20);
+    printw("%s  -count:  %d  -key; v  -Distance: 10  -Power: 15",c,type3);
+    move(14,20);
+    printw("%s  -count:  %d  -key; n  -Distance: 5  -Power: 5",d,type4);
     refresh();
     getch();
     clear();
