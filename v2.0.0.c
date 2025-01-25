@@ -14,6 +14,7 @@ char *music_list[3] = {
 int choice_mu;
 int music_playing = 0;
 int size = 0;
+int last_throw = 0;
 int game_over = 0;
 time_t start;
 time_t end;
@@ -151,6 +152,7 @@ struct Demon{
     int x_demon;
     int y_demon;
     int number_of_room;
+    int can_move;
 };
 
 #pragma pack()
@@ -280,6 +282,13 @@ void stop_music();
 void move_demon(struct Map *map,struct Player *p);
 int witch_room(struct Map *map, int x, int y);
 void print_after_move_demon(struct Map *map,int x, int y);
+int have_wepon(struct Player *p,int type);
+int witch_demon(struct Map *map,int x,int y);
+char* name_of_demon(int type);
+int is_wepon_use(struct Map *map,int x, int y);
+int index_wepon_use(struct Map *map,int x, int y);
+void f_wepon_use(struct Map *map,int x, int y);
+void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -869,6 +878,7 @@ void generate_map(struct Map *map,char name[100],int number) {
     for(int i = 0; i < 5; i++){
         map->demons[i].x_demon = 0;
         map->demons[i].y_demon = 0;
+        map->demons[i].can_move = 1;
         while(map->demons[i].x_demon == 0 || map->demons[i].y_demon == 0 || (map->demons[i].x_demon == map->x_stair && map->demons[i].y_demon == map->y_stair) || (map->demons[i].x_demon == map->x_create_paasword && map->demons[i].y_demon == map->y_create_paasword) || (map->demons[i].x_demon == map->x_fight_room && map->demons[i].y_demon == map->y_fight_room) || (map->demons[i].x_demon == map->x_Master_Key && map->demons[i].y_demon == map->y_Master_Key) || is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_trap(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_food(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_spell(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_wepon(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_gold(map,map->demons[i].x_demon,map->demons[i].y_demon)){
             map->demons[i].x_demon = rand() % ((map->rooms[map->demons[i].number_of_room].x + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].x + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].x + 1));
             map->demons[i].y_demon = rand() % ((map->rooms[map->demons[i].number_of_room].y + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].y + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].y + 1));
@@ -891,6 +901,7 @@ void generate_map(struct Map *map,char name[100],int number) {
             map->demons[i].healt = 30;
         }
     }
+    map->number_of_wepons_use = 0;
     save_map(name,map,number);
 }
 
@@ -2686,6 +2697,30 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
             }
+            if(p->type_wepon_chosen == 2){
+                throw_wepon(2,map,p,0);
+            }
+            if(p->type_wepon_chosen == 3){
+                throw_wepon(3,map,p,0);
+            }
+            if(p->type_wepon_chosen == 4){
+                throw_wepon(4,map,p,0);
+            }
+        }
+        if(c == 'A'){
+            if(last_throw){
+                if(!p->type_wepon_chosen){
+                    if(p->type_wepon_chosen == 2){
+                        throw_wepon(2,map,p,1);
+                    }
+                    if(p->type_wepon_chosen == 3){
+                        throw_wepon(3,map,p,1);
+                    }
+                    if(p->type_wepon_chosen == 4){
+                        throw_wepon(4,map,p,1);
+                    }
+                }
+            }
         }
     }
 }
@@ -2784,6 +2819,15 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
         clrtoeol();
         p->wepon_number += 1;
         refresh();
+    }
+    else if(!strcmp(state,"wepon_use")){
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == map->wepons_use[index_wepon_use(map,x,y)].type){
+                p->wepons[i].cllect += 1;
+                break;
+            }
+        }
+        f_wepon_use(map,x,y);
     }
     if(!strcmp(state,"gold")){
         move(1,0);
@@ -3082,6 +3126,9 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         if(is_wepon(map,p->x + second_x,p->y + second_y)){
             move_effect("wepon",p,map,p->x + second_x,p->y + second_y);
         }
+        if(is_wepon_use(map,p->x + second_x,p->y + second_y)){
+            move_effect("wepon_use",p,map,p->x + second_x,p->y + second_y);
+        }
         if(is_gold(map,p->x + second_x,p->y + second_y)){
             move_effect("gold",p,map,p->x + second_x,p->y + second_y);
         }
@@ -3286,6 +3333,9 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
     }
     if(is_wepon(map,p->x,p->y)){
         move_effect("wepon",p,map,p->x,p->y);
+    }
+    if(is_wepon_use(map,p->x,p->y)){
+        move_effect("wepon_use",p,map,p->x,p->y);
     }
     if(is_gold(map,p->x,p->y)){
         move_effect("gold",p,map,p->x,p->y);
@@ -3709,6 +3759,20 @@ void print_room(struct Map *map,struct Player *p){
                     }
                     if(map->wepons[j].type == 5){
                         printw("%s",e);
+                    }
+                }
+            }
+            for(int j = 0; j < map->number_of_wepons_use; j++){
+                if(map->wepons_use[j].x_wepon != 0){
+                    move(map->wepons_use[j].y_wepon,map->wepons_use[j].x_wepon);
+                    if(map->wepons_use[j].type == 2){
+                        printw("%s",b);
+                    }
+                    if(map->wepons_use[j].type == 3){
+                        printw("%s",c);
+                    }
+                    if(map->wepons_use[j].type == 4){
+                        printw("%s",d);
                     }
                 }
             }
@@ -5368,7 +5432,7 @@ void show_map(struct Map *map){
             refresh();
         }
         for(int j = 0; j < 3; j++){
-            if(map->foods[j].number_room == i){
+            if(map->foods[j].number_room == i && map->foods[j].x_food != 0){
                 move(map->foods[j].y_food,map->foods[j].x_food);
                 if(map->foods[j].type == 1){
                     printw("%s",l);
@@ -5385,7 +5449,7 @@ void show_map(struct Map *map){
             }
         }
         for(int j = 0; j < 3; j++){
-            if(map->spells[j].number_room == i){
+            if(map->spells[j].number_room == i && map->spells[i].x_spell != 0){
                 move(map->spells[j].y_spell,map->spells[j].x_spell);
                 if(map->spells[j].type == 1){
                     printw("%s",f);
@@ -5399,7 +5463,7 @@ void show_map(struct Map *map){
             }
         }
         for(int j = 0; j < 3; j++){
-            if(map->wepons[j].number_room == i){
+            if(map->wepons[j].number_room == i && map->wepons[i].x_wepon != 0){
                 move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
                 if(map->wepons[j].type == 1){
                     printw("%s",a);
@@ -5419,7 +5483,7 @@ void show_map(struct Map *map){
             }
         }
         for(int j = 0; j < 3; j++){
-            if(map->golds[j].number_room == i){
+            if(map->golds[j].number_room == i && map->golds[i].x_gold != 0){
                 move(map->golds[j].y_gold,map->golds[j].x_gold);
                 if(map->golds[j].is_black){
                     printw("%s",v);
@@ -5429,7 +5493,7 @@ void show_map(struct Map *map){
             }
         }
         for(int j = 0; j < 5; j++){
-            if(map->demons[j].number_of_room == i){
+            if(map->demons[j].number_of_room == i && map->demons[i].x_demon != 0){
                 move(map->demons[j].y_demon,map->demons[j].x_demon);
                 if(map->demons[j].type == 1){
                     printw("D");
@@ -5892,11 +5956,43 @@ void move_demon(struct Map *map,struct Player *p){
         }
     }
     for(int i = 0; i < 5; i++){
-        int resualt_or_index_room = witch_room(map,p->x,p->y);
-        if(resualt_or_index_room){
-            if(map->demons[i].number_of_room == resualt_or_index_room - 1){
-                if(map->demons[i].type == 3 || map->demons[i].type == 5){
-                    if(p->step <= 5){
+        if(map->demons[i].can_move){
+            int resualt_or_index_room = witch_room(map,p->x,p->y);
+            if(resualt_or_index_room){
+                if(map->demons[i].number_of_room == resualt_or_index_room - 1){
+                    if(map->demons[i].type == 3 || map->demons[i].type == 5){
+                        if(p->step <= 5){
+                            if(map->demons[i].x_demon < p->x){
+                                if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
+                                    print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
+                                    map->demons[i].x_demon += 1;
+                                    return;
+                                }
+                            }
+                            if(map->demons[i].x_demon > p->x){
+                                if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
+                                    print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
+                                    map->demons[i].x_demon -= 1;
+                                    return;
+                                }
+                            }
+                            if(map->demons[i].y_demon < p->y){
+                                if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
+                                    print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
+                                    map->demons[i].y_demon += 1;
+                                    return;
+                                }
+                            }
+                            if(map->demons[i].y_demon > p->y){
+                                if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
+                                    print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
+                                    map->demons[i].y_demon -= 1;
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    if(map->demons[i].type == 4){
                         if(map->demons[i].x_demon < p->x){
                             if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
                                 print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
@@ -5924,38 +6020,8 @@ void move_demon(struct Map *map,struct Player *p){
                                 map->demons[i].y_demon -= 1;
                                 return;
                             }
-                        }
+                        }    
                     }
-                }
-                if(map->demons[i].type == 4){
-                    if(map->demons[i].x_demon < p->x){
-                        if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
-                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
-                            map->demons[i].x_demon += 1;
-                            return;
-                        }
-                    }
-                    if(map->demons[i].x_demon > p->x){
-                        if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
-                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
-                            map->demons[i].x_demon -= 1;
-                            return;
-                        }
-                    }
-                    if(map->demons[i].y_demon < p->y){
-                        if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
-                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
-                            map->demons[i].y_demon += 1;
-                            return;
-                        }
-                    }
-                    if(map->demons[i].y_demon > p->y){
-                        if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
-                            print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
-                            map->demons[i].y_demon -= 1;
-                            return;
-                        }
-                    }    
                 }
             }
         }
@@ -6078,5 +6144,978 @@ void print_after_move_demon(struct Map *map,int x, int y){
     move(y,x);
     printw(" ");
     return;
+}
+
+int have_wepon(struct Player *p,int type){
+    for(int i = 0; i < p->wepon_number; i++){
+        if(p->wepons[i].type == type){
+            if(p->wepons[i].cllect > 0){
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+int witch_demon(struct Map *map,int x,int y){
+    for(int i = 0; i < 5; i++){
+        if(map->demons[i].x_demon == x && map->demons[i].y_demon == y){
+            return i;
+        }
+    }
+}
+
+char* name_of_demon(int type){
+    if(type == 1){
+        return "deamon";
+    }
+    if(type == 2){
+        return "Monster Breathing Fire";
+    }
+    if(type == 3){
+        return "Giant";
+    }
+    if(type == 4){
+        return "Snake";
+    }
+    if(type == 5){
+        return "Undeed";
+    }
+}
+
+int is_wepon_use(struct Map *map,int x, int y){
+    for(int i = 0; i < map->number_of_wepons_use; i++){
+        if(map->wepons_use[i].x_wepon == x && map->wepons_use[i].y_wepon == y){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int index_wepon_use(struct Map *map,int x, int y){
+    for(int i = 0; i < map->number_of_wepons_use; i++){
+        if(map->wepons_use[i].x_wepon == x && map->wepons_use[i].y_wepon == y){
+            return i;
+        }
+    }
+}
+
+void f_wepon_use(struct Map *map,int x, int y){
+    for(int i = 0; i < map->number_of_wepons_use; i++){
+        if(map->wepons_use[i].x_wepon == x && map->wepons_use[i].y_wepon == y){
+            map->wepons_use[i].x_wepon = 0;
+            map->wepons_use[i].y_wepon = 0;
+            break;
+        }
+    }
+}
+
+void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
+    int damage;
+    int range;
+    if(type == 2){
+        damage = 12;
+        range = 5;
+    }
+    if(type == 3){
+        damage = 15;
+        range = 10;
+    }
+    if(type == 4){
+        damage = 5;
+        range = 5;
+    }
+    int c2 = getch();
+    if(is_repeat){
+        c2 = last_throw;
+    }
+    if(c2 == 'w'){
+        last_throw = 'w';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x,p->y - i) && !is_pillor(map,p->x,p->y - i) && !is_demon(map,p->x, p->y - i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x, p->y - distance_available - 1) || is_pillor(map,p->x,p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x, p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].x_demon,map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].y_demon);
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available - 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'd'){
+        last_throw = 'd';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x + i,p->y) && !is_pillor(map,p->x + i,p->y) && !is_demon(map,p->x + i, p->y)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x + distance_available + 1, p->y) || is_pillor(map,p->x + distance_available + 1,p->y)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x + distance_available + 1, p->y)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].x_demon,map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].y_demon);
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].x_demon = 0;
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available + 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'x'){
+        last_throw = 'x';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x,p->y + i) && !is_pillor(map,p->x,p->y + i) && !is_demon(map,p->x, p->y + i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x, p->y + distance_available + 1) || is_pillor(map,p->x,p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x, p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].x_demon,map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].y_demon);
+                map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available + 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'a'){
+        last_throw = 'a';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x - i,p->y) && !is_pillor(map,p->x - i,p->y) && !is_demon(map,p->x - i, p->y)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x - distance_available - 1, p->y) || is_pillor(map,p->x - distance_available - 1,p->y)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x - distance_available - 1, p->y)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].x_demon,map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].y_demon);
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].x_demon = 0;
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available - 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'q'){
+        last_throw = 'q';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x - i,p->y - i) && !is_pillor(map,p->x - i,p->y - i) && !is_demon(map,p->x - i, p->y - i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x - distance_available - 1, p->y - distance_available - 1) || is_pillor(map,p->x - distance_available - 1,p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x - distance_available - 1, p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].x_demon,map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].y_demon);
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available - 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available - 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'e'){
+        last_throw = 'e';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x + i,p->y - i) && !is_pillor(map,p->x + i,p->y - i) && !is_demon(map,p->x + i, p->y - i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x + distance_available + 1, p->y - distance_available - 1) || is_pillor(map,p->x + distance_available + 1,p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x + distance_available + 1, p->y - distance_available - 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].x_demon,map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].y_demon);
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available + 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y - distance_available - 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'c'){
+        last_throw = 'c';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x + i,p->y + i) && !is_pillor(map,p->x + i,p->y + i) && !is_demon(map,p->x + i, p->y + i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x + distance_available + 1, p->y + distance_available + 1) || is_pillor(map,p->x + distance_available + 1,p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x + distance_available + 1, p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].x_demon,map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].y_demon);
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x + distance_available + 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available + 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
+    if(c2 == 'z'){
+        last_throw = 'z';
+        int distance_available = 0;
+        for(int i = 1; i <= range - 1; i++){
+            if(is_not_wall(map,p->x - i,p->y + i) && !is_pillor(map,p->x - i,p->y + i) && !is_demon(map,p->x - i, p->y + i)){
+                distance_available = i;
+            }else{
+                break;
+            }
+        }
+        int found = 0;
+        for(int i = 0; i < p->wepon_number; i++){
+            if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                found = 1;
+                break;
+            }
+        }
+        if(!found){
+            move(1,0);
+            printw("Your weapon is finished!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(!is_not_wall(map,p->x - distance_available - 1, p->y + distance_available + 1) || is_pillor(map,p->x - distance_available - 1,p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+        if(is_demon(map,p->x - distance_available - 1, p->y + distance_available + 1)){
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            if(type == 3){
+                map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
+            }
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].healt -= damage;
+            if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].healt <= 0){
+                move(1,0);
+                printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                print_after_move_demon(map,map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].x_demon,map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].y_demon);
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].x_demon = 0;
+                map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].y_demon = 0;
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }else{
+                move(1,0);
+                printw("the wepon hit to %s and damage %d",name_of_demon(type),damage);
+                refresh();
+                sleep(1);
+                move(1,0);
+                clrtoeol();
+                refresh();
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
+                return;
+            }
+        }else{
+            for(int i = 0; i < p->wepon_number; i++){
+                if(p->wepons[i].type == type && p->wepons[i].cllect > 0){
+                    p->wepons[i].cllect -= 1;
+                    break;
+                }
+            }
+            map->wepons_use[map->number_of_wepons_use].type = type;
+            map->wepons_use[map->number_of_wepons_use].x_wepon = p->x - distance_available - 1;
+            map->wepons_use[map->number_of_wepons_use].y_wepon = p->y + distance_available + 1;
+            map->number_of_wepons_use += 1;
+            move(1,0);
+            printw("The wepon did not hit the enemy!");
+            refresh();
+            sleep(1);
+            move(1,0);
+            clrtoeol();
+            refresh();
+            move_demon(map,p);
+            print(map,p->x,p->y,p);
+            return;
+        }
+    }
 }
 
