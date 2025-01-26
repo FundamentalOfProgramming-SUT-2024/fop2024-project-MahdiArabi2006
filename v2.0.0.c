@@ -95,10 +95,12 @@ struct Player{
     int x_map2;
     int x_map3;
     int x_map4;
+    int x_map5;
     int y_map1;
     int y_map2;
     int y_map3;
     int y_map4;
+    int y_map5;
     int hungry;
     int game_number;
     int total_game;
@@ -202,7 +204,7 @@ struct Map{
 #pragma pack()
 #pragma pack(1)
 struct Game{
-    struct Map maps[4];
+    struct Map maps[5];
 }game;
 #pragma pack()
 
@@ -272,7 +274,6 @@ void save_player(char filename[100], struct Player * p);
 void load_player(char filename[100], struct Player * p);
 int is_stair(struct Map *map,int x,int y);
 void fightroom(struct Player *p);
-void move_in_fightroom(struct Player *p);
 void show_wepons(struct Player *p);
 void show_spells(struct Player *p);
 void show_foods(struct Player *p);
@@ -296,6 +297,7 @@ int is_wepon_use(struct Map *map,int x, int y);
 int index_wepon_use(struct Map *map,int x, int y);
 void f_wepon_use(struct Map *map,int x, int y);
 void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat);
+int is_win(struct Map *map);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -313,18 +315,24 @@ int main(){
 
 void generate_map(struct Map *map,char name[100],int number) {
     //Rooms
-    map->number_of_rooms = ((unsigned int)rand() % 3) + 6; // 6-8  
+    if(number == 5){
+        map->number_of_rooms = 1;
+    }else{
+        map->number_of_rooms = ((unsigned int)rand() % 3) + 6; // 6-8
+    }
     int current_room = 0;  
-
     while (current_room < map->number_of_rooms) {  
         if(current_room + 1 == 1){
             map->rooms[current_room].x = (unsigned int)rand() % (11 - (0 + 2) + 1) + (0 + 2);  
             map->rooms[current_room].y = (unsigned int)rand() % (10 - 2 + 1) + 2;
-            map->rooms[current_room].size = ((unsigned int)rand() % 3) + 6;
+            if(number == 5){
+                map->rooms[current_room].size = 10;
+            }else{
+                map->rooms[current_room].size = ((unsigned int)rand() % 3) + 6;
+            }
             map->rooms[current_room].is_seen = 0;
             if (can_have_room(map->rooms, current_room)) {  
                 current_room++;
-
             }
         }
         else if(current_room + 1 == 2){
@@ -392,520 +400,589 @@ void generate_map(struct Map *map,char name[100],int number) {
             } 
         }
     }
-    //Doors
-    current_room = 0;
-    while(current_room < map->number_of_rooms){
-        if(current_room + 1 == 1){
-            //2
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //3
-            map->rooms[current_room].doors[1].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + map->rooms[current_room].x + 1;
-            map->rooms[current_room].doors[1].y_door = map->rooms[current_room].y + map->rooms[current_room].size;
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
-        }
-        if(current_room + 1 == 2){
-            //2
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //4
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
-        }
-        if(current_room + 1 == 3){
-            //1
-            map->rooms[current_room].doors[0].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + (map->rooms[current_room].x + 1);
-            map->rooms[current_room].doors[0].y_door = map->rooms[current_room].y;
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //2
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[1].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
-        }
-        if(current_room + 1 == 4){
-            //2
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
+    if(number != 5){
+        //Doors
+        current_room = 0;
+        while(current_room < map->number_of_rooms){
+            if(current_room + 1 == 1){
+                //2
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //3
+                map->rooms[current_room].doors[1].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + map->rooms[current_room].x + 1;
+                map->rooms[current_room].doors[1].y_door = map->rooms[current_room].y + map->rooms[current_room].size;
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 2){
+                //2
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //4
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 3){
+                //1
+                map->rooms[current_room].doors[0].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + (map->rooms[current_room].x + 1);
+                map->rooms[current_room].doors[0].y_door = map->rooms[current_room].y;
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //2
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[1].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 4){
+                //2
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
 
-            //4
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
+                //4
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 5){
+                //2
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //4
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 6){
+                //4
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[0].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //3
+                map->rooms[current_room].doors[1].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + map->rooms[current_room].x + 1;
+                map->rooms[current_room].doors[1].y_door = map->rooms[current_room].y + map->rooms[current_room].size;
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 7){
+                //2
+                map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
+                map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //4
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            if(current_room + 1 == 8){
+                //1
+                map->rooms[current_room].doors[0].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + (map->rooms[current_room].x + 1);
+                map->rooms[current_room].doors[0].y_door = map->rooms[current_room].y;
+                map->rooms[current_room].doors[0].room_number = current_room;
+                map->rooms[current_room].doors[0].is_secret_door = 0;
+                map->rooms[current_room].doors[0].is_password_door = 0;
+                //4
+                map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
+                map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
+                map->rooms[current_room].doors[1].room_number = current_room;
+                map->rooms[current_room].doors[1].is_secret_door = 0;
+                map->rooms[current_room].doors[1].is_password_door = 0;
+            }
+            current_room ++;
         }
-        if(current_room + 1 == 5){
-            //2
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //4
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
+        //Window
+        //Corridor
+        connect_doors(map);
+        if(map->number_of_rooms == 6){
+            map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
         }
-        if(current_room + 1 == 6){
-            //4
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[0].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //3
-            map->rooms[current_room].doors[1].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + map->rooms[current_room].x + 1;
-            map->rooms[current_room].doors[1].y_door = map->rooms[current_room].y + map->rooms[current_room].size;
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
+        if(map->number_of_rooms == 7){
+            map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[6].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[6].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[6].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[6].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
         }
-        if(current_room + 1 == 7){
-            //2
-            map->rooms[current_room].doors[0].x_door = map->rooms[current_room].x + map->rooms[current_room].size;
-            map->rooms[current_room].doors[0].y_door = rand() % ((map->rooms[current_room].y + map->rooms[current_room].size - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //4
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
+        if(map->number_of_rooms == 8){
+            map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
+            map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[6].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[6].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[6].doors[0].x_door + 1;
+            map->corridors[size].y_corrifer = map->rooms[6].doors[0].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[7].doors[1].x_door - 1;
+            map->corridors[size].y_corrifer = map->rooms[7].doors[1].y_door;
+            map->corridors[size].is_seen = 0;
+            size++;
+            map->corridors[size].x_corridor = map->rooms[7].doors[0].x_door;
+            map->corridors[size].y_corrifer = map->rooms[7].doors[0].y_door - 1;
+            map->corridors[size].is_seen = 0;
+            size++;
         }
-        if(current_room + 1 == 8){
-            //1
-            map->rooms[current_room].doors[0].x_door = rand() % ((map->rooms[current_room].x + map->rooms[current_room].size - 1) - (map->rooms[current_room].x + 1) + 1) + (map->rooms[current_room].x + 1);
-            map->rooms[current_room].doors[0].y_door = map->rooms[current_room].y;
-            map->rooms[current_room].doors[0].room_number = current_room;
-            map->rooms[current_room].doors[0].is_secret_door = 0;
-            map->rooms[current_room].doors[0].is_password_door = 0;
-            //4
-            map->rooms[current_room].doors[1].x_door = map->rooms[current_room].x;
-            map->rooms[current_room].doors[1].y_door = rand() % (((map->rooms[current_room].y + map->rooms[current_room].size) - 1) - (map->rooms[current_room].y + 1) + 1) + (map->rooms[current_room].y + 1);
-            map->rooms[current_room].doors[1].room_number = current_room;
-            map->rooms[current_room].doors[1].is_secret_door = 0;
-            map->rooms[current_room].doors[1].is_password_door = 0;
+        map->corridor_count = size;
+        size = 0;
+        map->has_treasure_room = 0;
+        if(number == 4){
+            //Treasure Room
+            map->number_Treasure_Room = rand() % map->number_of_rooms;
+            map->has_treasure_room = 1;
         }
-        current_room ++;
-    }
-    //Window
-    //Corridor
-    connect_doors(map);
-    if(map->number_of_rooms == 6){
-        map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-    }
-    if(map->number_of_rooms == 7){
-        map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[6].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[6].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[6].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[6].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-    }
-    if(map->number_of_rooms == 8){
-        map->corridors[size].x_corridor = map->rooms[0].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[0].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[0].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[1].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[1].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[0].x_door;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[0].y_door - 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[2].doors[1].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[2].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[3].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[3].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[4].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[4].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[0].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[5].doors[1].x_door;
-        map->corridors[size].y_corrifer = map->rooms[5].doors[1].y_door + 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[6].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[6].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[6].doors[0].x_door + 1;
-        map->corridors[size].y_corrifer = map->rooms[6].doors[0].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[7].doors[1].x_door - 1;
-        map->corridors[size].y_corrifer = map->rooms[7].doors[1].y_door;
-        map->corridors[size].is_seen = 0;
-        size++;
-        map->corridors[size].x_corridor = map->rooms[7].doors[0].x_door;
-        map->corridors[size].y_corrifer = map->rooms[7].doors[0].y_door - 1;
-        map->corridors[size].is_seen = 0;
-        size++;
-    }
-    map->corridor_count = size;
-    size = 0;
-    map->has_treasure_room = 0;
-    if(number == 4){
-        //Treasure Room
-        map->number_Treasure_Room = rand() % map->number_of_rooms;
-        map->has_treasure_room = 1;
-    }
-    //Spell_room && Secret Doors
-    if(number == 4){
-        map->number_Spell_room = rand() % map->number_of_rooms;
-        while(map->number_Spell_room == map->number_Treasure_Room){
+        //Spell_room && Secret Doors
+        if(number == 4){
             map->number_Spell_room = rand() % map->number_of_rooms;
+            while(map->number_Spell_room == map->number_Treasure_Room){
+                map->number_Spell_room = rand() % map->number_of_rooms;
+            }
+        }else{
+            map->number_Spell_room = rand() % map->number_of_rooms;
+            map->rooms[map->number_Spell_room].doors[0].is_secret_door = 1;
+            map->rooms[map->number_Spell_room].doors[1].is_secret_door = 1;
         }
-    }else{
-        map->number_Spell_room = rand() % map->number_of_rooms;
-        map->rooms[map->number_Spell_room].doors[0].is_secret_door = 1;
-        map->rooms[map->number_Spell_room].doors[1].is_secret_door = 1;
-    }
-    //Traps
-    if(number == 4){
+        //Traps
+        if(number == 4){
+            for(int i = 0; i < 3; i++){
+                map->traps[i].number_room = map->number_Treasure_Room;
+            }
+        }else{
+            for(int i = 0; i < 3; i++){
+                map->traps[i].number_room = rand() % map->number_of_rooms;
+                while(map->traps[i].number_room == map->number_Spell_room){
+                    map->traps[i].number_room = rand() % map->number_of_rooms;
+                }
+            }
+        }
         for(int i = 0; i < 3; i++){
-            map->traps[i].number_room = map->number_Treasure_Room;
+            map->traps[i].x_trap = 0;
+            map->traps[i].y_trap = 0;
+            while(map->traps[i].x_trap == 0 || map->traps[i].y_trap == 0 || (map->traps[i].x_trap == map->x_stair && map->traps[i].y_trap == map->y_stair) || (map->traps[i].x_trap == map->pillors[0].x_pillar && map->traps[i].y_trap == map->pillors[0].y_pillar) || (map->traps[i].x_trap == map->pillors[1].x_pillar && map->traps[i].y_trap == map->pillors[1].y_pillar) || (map->traps[i].x_trap == map->pillors[2].x_pillar && map->traps[i].y_trap == map->pillors[2].y_pillar)){
+                map->traps[i].x_trap = rand() % ((map->rooms[map->traps[i].number_room].x + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].x + 1) + 1) + ((map->rooms[map->traps[i].number_room].x + 1));
+                map->traps[i].y_trap = rand() % ((map->rooms[map->traps[i].number_room].y + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].y + 1) + 1) + ((map->rooms[map->traps[i].number_room].y + 1));
+            }
+        }
+        //Fight_room
+        if(number == 4){
+            map->number_room_fight_room = map->number_Treasure_Room;
+        }else{
+            map->number_room_fight_room = rand() % map->number_of_rooms;
+            while(map->number_room_fight_room == map->number_Spell_room){
+                    map->number_room_fight_room = rand() % map->number_of_rooms;
+            }
+        }
+        map->x_fight_room = 0;
+        map->y_fight_room = 0;
+        while(map->x_fight_room == 0 || map->y_fight_room == 0 || (map->x_fight_room == map->x_stair && map->y_fight_room == map->y_stair) || (map->x_fight_room == map->pillors[0].x_pillar && map->y_fight_room == map->pillors[0].y_pillar) || (map->x_fight_room == map->pillors[1].x_pillar && map->y_fight_room == map->pillors[1].y_pillar) || (map->x_fight_room == map->pillors[2].x_pillar && map->y_fight_room == map->pillors[2].y_pillar) || (map->x_fight_room == map->traps[0].x_trap && map->y_fight_room == map->traps[0].y_trap) || (map->x_fight_room == map->traps[1].x_trap && map->y_fight_room == map->traps[1].y_trap) || (map->x_fight_room == map->traps[2].x_trap && map->y_fight_room == map->traps[2].y_trap)){
+            map->x_fight_room = rand() % ((map->rooms[map->number_room_fight_room].x + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].x + 1) + 1) + ((map->rooms[map->number_room_fight_room].x + 1));
+            map->y_fight_room = rand() % ((map->rooms[map->number_room_fight_room].y + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].y + 1) + 1) + ((map->rooms[map->number_room_fight_room].y + 1));
+        }
+        //Stair
+        map->number_room_stair = rand() % map->number_of_rooms;
+        while(map->number_room_stair == map->number_Spell_room){
+                map->number_room_stair = rand() % map->number_of_rooms;
+        }
+        map->x_stair = 0;
+        map->y_stair = 0;
+        while(map->x_stair == 0 || map->y_stair == 0){
+            map->x_stair = rand() % ((map->rooms[map->number_room_stair].x + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].x + 1) + 1) + ((map->rooms[map->number_room_stair].x + 1));
+            map->y_stair = rand() % ((map->rooms[map->number_room_stair].y + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].y + 1) + 1) + ((map->rooms[map->number_room_stair].y + 1));
+        }
+        //Pillar
+        for(int i = 0; i < 3; i++){
+            map->pillors[i].number_room = rand() % map->number_of_rooms;
+        }
+        for(int i = 0; i < 3; i++){
+            map->pillors[i].x_pillar = 0;
+            map->pillors[i].y_pillar = 0;
+            while(map->pillors[i].x_pillar == 0 || map->pillors[i].y_pillar == 0 || (map->pillors[i].x_pillar == map->x_stair && map->pillors[i].y_pillar == map->y_stair)){
+                map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].x + 1) + 1) + ((map->rooms[map->pillors[i].number_room].x + 1));
+                map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].y + 1) + 1) + ((map->rooms[map->pillors[i].number_room].y + 1));
+            }
+        }
+        //Password Doors
+        map->number_Password_Doors_room = rand() % map->number_of_rooms;
+        while(map->number_Password_Doors_room == map->number_Spell_room){
+            map->number_Password_Doors_room = rand() % map->number_of_rooms;
+        }
+        map->rooms[map->number_Password_Doors_room].doors[0].is_password_door = 1;
+        map->x_password_door = map->rooms[map->number_Password_Doors_room].doors[0].x_door;
+        map->y_password_door = map->rooms[map->number_Password_Doors_room].doors[0].y_door;
+        //Create_password
+        map->x_create_paasword = 0;
+        map->y_create_paasword = 0;
+        while(map->x_create_paasword == 0 || map->y_create_paasword == 0 || (map->x_create_paasword == map->x_stair && map->y_create_paasword == map->y_stair) || (map->x_create_paasword == map->x_fight_room && map->y_create_paasword == map->y_fight_room) || (map->x_create_paasword == map->pillors[0].x_pillar && map->y_create_paasword == map->pillors[0].y_pillar) || (map->x_create_paasword == map->pillors[1].x_pillar && map->y_create_paasword == map->pillors[1].y_pillar) || (map->x_create_paasword == map->pillors[2].x_pillar && map->y_create_paasword == map->pillors[2].y_pillar) || (map->x_create_paasword == map->traps[0].x_trap && map->y_create_paasword == map->traps[0].y_trap) || (map->x_create_paasword == map->traps[1].x_trap && map->y_create_paasword == map->traps[1].y_trap) || (map->x_create_paasword == map->traps[2].x_trap && map->y_create_paasword == map->traps[2].y_trap)){
+            map->x_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].x + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].x + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].x + 1));
+            map->y_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].y + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].y + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].y + 1));
+        }
+        //Master Key
+        map->number_Master_Key_room = rand() % map->number_of_rooms;
+        map->x_Master_Key = 0;
+        map->y_Master_Key = 0;
+        while(map->x_Master_Key == 0 || map->y_Master_Key == 0 || (map->x_Master_Key == map->x_stair && map->y_Master_Key == map->y_stair) || (map->x_Master_Key == map->x_create_paasword && map->y_Master_Key == map->y_create_paasword) || (map->x_Master_Key == map->x_fight_room && map->y_Master_Key == map->y_fight_room) || is_pillor(map,map->x_Master_Key,map->y_Master_Key) || is_trap(map,map->x_Master_Key,map->y_Master_Key)){
+            map->x_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].x + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].x + 1) + 1) + ((map->rooms[map->number_Master_Key_room].x + 1));
+            map->y_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].y + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].y + 1) + 1) + ((map->rooms[map->number_Master_Key_room].y + 1));
+        }
+        //Foods
+        for(int i = 0; i < 3; i++){
+            map->foods[i].number_room = rand() % map->number_of_rooms;
+            while(map->foods[i].number_room == map->number_Spell_room){
+                map->foods[i].number_room = rand() % map->number_of_rooms;
+            }
+            map->foods[i].type = rand() % 4 + 1;
+        }
+        for(int i = 0; i < 3; i++){
+            map->foods[i].x_food = 0;
+            map->foods[i].y_food = 0;
+            while(map->foods[i].x_food == 0 || map->foods[i].y_food == 0 || (map->foods[i].x_food == map->x_stair && map->foods[i].y_food == map->y_stair) || (map->foods[i].x_food == map->x_create_paasword && map->foods[i].y_food == map->y_create_paasword) || (map->foods[i].x_food == map->x_fight_room && map->foods[i].y_food == map->y_fight_room) || (map->foods[i].x_food == map->x_Master_Key && map->foods[i].y_food == map->y_Master_Key) || is_pillor(map,map->foods[i].x_food,map->foods[i].y_food) || is_trap(map,map->foods[i].x_food,map->foods[i].y_food)){
+                map->foods[i].x_food = rand() % ((map->rooms[map->foods[i].number_room].x + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].x + 1) + 1) + ((map->rooms[map->foods[i].number_room].x + 1));
+                map->foods[i].y_food = rand() % ((map->rooms[map->foods[i].number_room].y + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].y + 1) + 1) + ((map->rooms[map->foods[i].number_room].y + 1));
+            }
+        }
+        //Spells
+        for(int i = 0; i < 3; i++){
+            map->spells[i].number_room = map->number_Spell_room;
+            map->spells[i].type = rand() % 3 + 1;
+        }
+        for(int i = 0; i < 3; i++){
+            map->spells[i].x_spell = 0;
+            map->spells[i].y_spell = 0;
+            while(map->spells[i].x_spell == 0 || map->spells[i].y_spell == 0 || (map->spells[i].x_spell == map->x_stair && map->spells[i].y_spell == map->y_stair) || (map->spells[i].x_spell == map->x_create_paasword && map->spells[i].y_spell == map->y_create_paasword) || (map->spells[i].x_spell == map->x_fight_room && map->spells[i].y_spell == map->y_fight_room) || (map->spells[i].x_spell == map->x_Master_Key && map->spells[i].y_spell == map->y_Master_Key) || is_pillor(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_trap(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_food(map,map->spells[i].x_spell,map->spells[i].y_spell)){
+                map->spells[i].x_spell = rand() % ((map->rooms[map->spells[i].number_room].x + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].x + 1) + 1) + ((map->rooms[map->spells[i].number_room].x + 1));
+                map->spells[i].y_spell = rand() % ((map->rooms[map->spells[i].number_room].y + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].y + 1) + 1) + ((map->rooms[map->spells[i].number_room].y + 1));
+            }
+        }
+        //Wepons
+        for(int i = 0; i < 3; i++){
+            map->wepons[i].number_room = rand() % map->number_of_rooms;
+            while(map->wepons[i].number_room == map->number_Spell_room){
+                map->wepons[i].number_room = rand() % map->number_of_rooms;
+            }
+            map->wepons[i].type = rand() % 4 + 2;
+        }
+        for(int i = 0; i < 3; i++){
+            map->wepons[i].x_wepon = 0;
+            map->wepons[i].y_wepon = 0;
+            while(map->wepons[i].x_wepon == 0 || map->wepons[i].y_wepon == 0 || (map->wepons[i].x_wepon == map->x_stair && map->wepons[i].y_wepon == map->y_stair) || (map->wepons[i].x_wepon == map->x_create_paasword && map->wepons[i].y_wepon == map->y_create_paasword) || (map->wepons[i].x_wepon == map->x_fight_room && map->wepons[i].y_wepon == map->y_fight_room) || (map->wepons[i].x_wepon == map->x_Master_Key && map->wepons[i].y_wepon == map->y_Master_Key) || is_pillor(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_trap(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_food(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_spell(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon)){
+                map->wepons[i].x_wepon = rand() % ((map->rooms[map->wepons[i].number_room].x + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].x + 1) + 1) + ((map->rooms[map->wepons[i].number_room].x + 1));
+                map->wepons[i].y_wepon = rand() % ((map->rooms[map->wepons[i].number_room].y + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].y + 1) + 1) + ((map->rooms[map->wepons[i].number_room].y + 1));
+            }
+        }
+        //Golds
+        int wich_black = rand() % 5;
+        for(int i = 0; i < 3; i++){
+            map->golds[i].number_room = rand() % map->number_of_rooms;
+            while(map->golds[i].number_room == map->number_Spell_room){
+                map->golds[i].number_room = rand() % map->number_of_rooms;
+            }
+            if(i == wich_black){
+                map->golds[i].is_black = 1;
+                map->golds[i].worth = 500;
+            }
+            map->golds[i].worth = rand() % (300 - 100 + 1) + 100;
+            map->golds[i].is_black = 0;
+        }
+        for(int i = 0; i < 3; i++){
+            map->golds[i].x_gold = 0;
+            map->golds[i].y_gold = 0;
+            while(map->golds[i].x_gold == 0 || map->golds[i].y_gold == 0 || (map->golds[i].x_gold == map->x_stair && map->golds[i].y_gold == map->y_stair) || (map->golds[i].x_gold == map->x_create_paasword && map->golds[i].y_gold == map->y_create_paasword) || (map->golds[i].x_gold == map->x_fight_room && map->golds[i].y_gold == map->y_fight_room) || (map->golds[i].x_gold == map->x_Master_Key && map->golds[i].y_gold == map->y_Master_Key) || is_pillor(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_trap(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_food(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_spell(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_wepon(map,map->golds[i].x_gold,map->golds[i].y_gold)){
+                map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].x + 1) + 1) + ((map->rooms[map->golds[i].number_room].x + 1));
+                map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].y + 1) + 1) + ((map->rooms[map->golds[i].number_room].y + 1));
+            }
+        }
+        //treasure
+        if(number == 4){
+            map->x_end = 0;
+            map->y_end = 0;
+            while(map->x_end == 0 || map->y_end == 0 || (map->x_end == map->x_stair && map->y_end == map->y_stair) || (map->x_end == map->x_create_paasword && map->y_end == map->y_create_paasword) || (map->x_end == map->x_fight_room && map->y_end == map->y_fight_room) || (map->x_end == map->x_Master_Key && map->y_end == map->y_Master_Key) || is_pillor(map,map->x_end,map->y_end) || is_trap(map,map->x_end,map->y_end) || is_food(map,map->x_end,map->y_end) || is_spell(map,map->x_end,map->y_end) || is_wepon(map,map->x_end,map->y_end) || is_gold(map,map->x_end,map->y_end)){
+                map->x_end = rand() % ((map->rooms[map->number_Treasure_Room].x + map->rooms[map->number_Treasure_Room].size - 1) - (map->rooms[map->number_Treasure_Room].x + 1) + 1) + ((map->rooms[map->number_Treasure_Room].x + 1));
+                map->y_end = rand() % ((map->rooms[map->number_Treasure_Room].y + map->rooms[map->number_Treasure_Room].size - 1) - (map->rooms[map->number_Treasure_Room].y + 1) + 1) + ((map->rooms[map->number_Treasure_Room].y + 1));
+            }
+        }
+        //demons
+        if(number == 4){
+            for(int i = 0; i < 5; i++){
+                map->demons[i].number_of_room = rand() % map->number_of_rooms;
+                while(map->demons[i].number_of_room == map->number_Spell_room || map->demons[i].number_of_room == map->number_Treasure_Room){
+                    map->demons[i].number_of_room = rand() % map->number_of_rooms;
+                }
+                map->demons[i].type = rand() % 5 + 1;
+            } 
+        }else{
+            for(int i = 0; i < 5; i++){
+                map->demons[i].number_of_room = rand() % map->number_of_rooms;
+                while(map->demons[i].number_of_room == map->number_Spell_room){
+                    map->demons[i].number_of_room = rand() % map->number_of_rooms;
+                }
+                map->demons[i].type = rand() % 5 + 1;
+            }
+        }
+        for(int i = 0; i < 5; i++){
+            map->demons[i].x_demon = 0;
+            map->demons[i].y_demon = 0;
+            map->demons[i].can_move = 1;
+            while(map->demons[i].x_demon == 0 || map->demons[i].y_demon == 0 || (map->demons[i].x_demon == map->x_stair && map->demons[i].y_demon == map->y_stair) || (map->demons[i].x_demon == map->x_create_paasword && map->demons[i].y_demon == map->y_create_paasword) || (map->demons[i].x_demon == map->x_fight_room && map->demons[i].y_demon == map->y_fight_room) || (map->demons[i].x_demon == map->x_Master_Key && map->demons[i].y_demon == map->y_Master_Key) || is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_trap(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_food(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_spell(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_wepon(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_gold(map,map->demons[i].x_demon,map->demons[i].y_demon)){
+                map->demons[i].x_demon = rand() % ((map->rooms[map->demons[i].number_of_room].x + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].x + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].x + 1));
+                map->demons[i].y_demon = rand() % ((map->rooms[map->demons[i].number_of_room].y + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].y + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].y + 1));
+            }
+        }
+        for(int i = 0; i < 5; i++){
+            if(map->demons[i].type == 1){
+                map->demons[i].healt = 5;
+            }
+            else if(map->demons[i].type == 2){
+                map->demons[i].healt = 10;
+            }
+            else if(map->demons[i].type == 3){
+                map->demons[i].healt = 15;
+            }
+            else if(map->demons[i].type == 4){
+                map->demons[i].healt = 20;
+            }
+            else if(map->demons[i].type == 5){
+                map->demons[i].healt = 30;
+            }
         }
     }else{
         for(int i = 0; i < 3; i++){
             map->traps[i].number_room = rand() % map->number_of_rooms;
-            while(map->traps[i].number_room == map->number_Spell_room){
-                map->traps[i].number_room = rand() % map->number_of_rooms;
-            }
         }
-    }
-    for(int i = 0; i < 3; i++){
-        map->traps[i].x_trap = 0;
-        map->traps[i].y_trap = 0;
-        while(map->traps[i].x_trap == 0 || map->traps[i].y_trap == 0 || (map->traps[i].x_trap == map->x_stair && map->traps[i].y_trap == map->y_stair) || (map->traps[i].x_trap == map->pillors[0].x_pillar && map->traps[i].y_trap == map->pillors[0].y_pillar) || (map->traps[i].x_trap == map->pillors[1].x_pillar && map->traps[i].y_trap == map->pillors[1].y_pillar) || (map->traps[i].x_trap == map->pillors[2].x_pillar && map->traps[i].y_trap == map->pillors[2].y_pillar)){
+        for(int i = 0; i < 3; i++){
             map->traps[i].x_trap = rand() % ((map->rooms[map->traps[i].number_room].x + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].x + 1) + 1) + ((map->rooms[map->traps[i].number_room].x + 1));
             map->traps[i].y_trap = rand() % ((map->rooms[map->traps[i].number_room].y + map->rooms[map->traps[i].number_room].size - 1) - (map->rooms[map->traps[i].number_room].y + 1) + 1) + ((map->rooms[map->traps[i].number_room].y + 1));
         }
-    }
-    //Fight_room
-    if(number == 4){
-        map->number_room_fight_room = map->number_Treasure_Room;
-    }else{
-        map->number_room_fight_room = rand() % map->number_of_rooms;
-        while(map->number_room_fight_room == map->number_Spell_room){
-                map->number_room_fight_room = rand() % map->number_of_rooms;
-        }
-    }
-    map->x_fight_room = 0;
-    map->y_fight_room = 0;
-    while(map->x_fight_room == 0 || map->y_fight_room == 0 || (map->x_fight_room == map->x_stair && map->y_fight_room == map->y_stair) || (map->x_fight_room == map->pillors[0].x_pillar && map->y_fight_room == map->pillors[0].y_pillar) || (map->x_fight_room == map->pillors[1].x_pillar && map->y_fight_room == map->pillors[1].y_pillar) || (map->x_fight_room == map->pillors[2].x_pillar && map->y_fight_room == map->pillors[2].y_pillar) || (map->x_fight_room == map->traps[0].x_trap && map->y_fight_room == map->traps[0].y_trap) || (map->x_fight_room == map->traps[1].x_trap && map->y_fight_room == map->traps[1].y_trap) || (map->x_fight_room == map->traps[2].x_trap && map->y_fight_room == map->traps[2].y_trap)){
-        map->x_fight_room = rand() % ((map->rooms[map->number_room_fight_room].x + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].x + 1) + 1) + ((map->rooms[map->number_room_fight_room].x + 1));
-        map->y_fight_room = rand() % ((map->rooms[map->number_room_fight_room].y + map->rooms[map->number_room_fight_room].size - 1) - (map->rooms[map->number_room_fight_room].y + 1) + 1) + ((map->rooms[map->number_room_fight_room].y + 1));
-    }
-    //Stair
-    map->number_room_stair = rand() % map->number_of_rooms;
-    while(map->number_room_stair == map->number_Spell_room){
-            map->number_room_stair = rand() % map->number_of_rooms;
-    }
-    map->x_stair = 0;
-    map->y_stair = 0;
-    while(map->x_stair == 0 || map->y_stair == 0){
-        map->x_stair = rand() % ((map->rooms[map->number_room_stair].x + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].x + 1) + 1) + ((map->rooms[map->number_room_stair].x + 1));
-        map->y_stair = rand() % ((map->rooms[map->number_room_stair].y + map->rooms[map->number_room_stair].size - 1) - (map->rooms[map->number_room_stair].y + 1) + 1) + ((map->rooms[map->number_room_stair].y + 1));
-    }
-    //Pillar
-    for(int i = 0; i < 3; i++){
-        map->pillors[i].number_room = rand() % map->number_of_rooms;
-    }
-    for(int i = 0; i < 3; i++){
-        map->pillors[i].x_pillar = 0;
-        map->pillors[i].y_pillar = 0;
-        while(map->pillors[i].x_pillar == 0 || map->pillors[i].y_pillar == 0 || (map->pillors[i].x_pillar == map->x_stair && map->pillors[i].y_pillar == map->y_stair)){
-            map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].x + 1) + 1) + ((map->rooms[map->pillors[i].number_room].x + 1));
-            map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].y + 1) + 1) + ((map->rooms[map->pillors[i].number_room].y + 1));
-        }
-    }
-    //Password Doors
-    map->number_Password_Doors_room = rand() % map->number_of_rooms;
-    while(map->number_Password_Doors_room == map->number_Spell_room){
-        map->number_Password_Doors_room = rand() % map->number_of_rooms;
-    }
-    map->rooms[map->number_Password_Doors_room].doors[0].is_password_door = 1;
-    map->x_password_door = map->rooms[map->number_Password_Doors_room].doors[0].x_door;
-    map->y_password_door = map->rooms[map->number_Password_Doors_room].doors[0].y_door;
-    //Create_password
-    map->x_create_paasword = 0;
-    map->y_create_paasword = 0;
-    while(map->x_create_paasword == 0 || map->y_create_paasword == 0 || (map->x_create_paasword == map->x_stair && map->y_create_paasword == map->y_stair) || (map->x_create_paasword == map->x_fight_room && map->y_create_paasword == map->y_fight_room) || (map->x_create_paasword == map->pillors[0].x_pillar && map->y_create_paasword == map->pillors[0].y_pillar) || (map->x_create_paasword == map->pillors[1].x_pillar && map->y_create_paasword == map->pillors[1].y_pillar) || (map->x_create_paasword == map->pillors[2].x_pillar && map->y_create_paasword == map->pillors[2].y_pillar) || (map->x_create_paasword == map->traps[0].x_trap && map->y_create_paasword == map->traps[0].y_trap) || (map->x_create_paasword == map->traps[1].x_trap && map->y_create_paasword == map->traps[1].y_trap) || (map->x_create_paasword == map->traps[2].x_trap && map->y_create_paasword == map->traps[2].y_trap)){
-        map->x_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].x + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].x + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].x + 1));
-        map->y_create_paasword = rand() % ((map->rooms[map->number_Password_Doors_room].y + map->rooms[map->number_Password_Doors_room].size - 1) - (map->rooms[map->number_Password_Doors_room].y + 1) + 1) + ((map->rooms[map->number_Password_Doors_room].y + 1));
-    }
-    //Master Key
-    map->number_Master_Key_room = rand() % map->number_of_rooms;
-    map->x_Master_Key = 0;
-    map->y_Master_Key = 0;
-    while(map->x_Master_Key == 0 || map->y_Master_Key == 0 || (map->x_Master_Key == map->x_stair && map->y_Master_Key == map->y_stair) || (map->x_Master_Key == map->x_create_paasword && map->y_Master_Key == map->y_create_paasword) || (map->x_Master_Key == map->x_fight_room && map->y_Master_Key == map->y_fight_room) || is_pillor(map,map->x_Master_Key,map->y_Master_Key) || is_trap(map,map->x_Master_Key,map->y_Master_Key)){
-        map->x_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].x + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].x + 1) + 1) + ((map->rooms[map->number_Master_Key_room].x + 1));
-        map->y_Master_Key = rand() % ((map->rooms[map->number_Master_Key_room].y + map->rooms[map->number_Master_Key_room].size - 1) - (map->rooms[map->number_Master_Key_room].y + 1) + 1) + ((map->rooms[map->number_Master_Key_room].y + 1));
-    }
-    //Foods
-    for(int i = 0; i < 3; i++){
-        map->foods[i].number_room = rand() % map->number_of_rooms;
-        while(map->foods[i].number_room == map->number_Spell_room){
-            map->foods[i].number_room = rand() % map->number_of_rooms;
-        }
-        map->foods[i].type = rand() % 4 + 1;
-    }
-    for(int i = 0; i < 3; i++){
-        map->foods[i].x_food = 0;
-        map->foods[i].y_food = 0;
-        while(map->foods[i].x_food == 0 || map->foods[i].y_food == 0 || (map->foods[i].x_food == map->x_stair && map->foods[i].y_food == map->y_stair) || (map->foods[i].x_food == map->x_create_paasword && map->foods[i].y_food == map->y_create_paasword) || (map->foods[i].x_food == map->x_fight_room && map->foods[i].y_food == map->y_fight_room) || (map->foods[i].x_food == map->x_Master_Key && map->foods[i].y_food == map->y_Master_Key) || is_pillor(map,map->foods[i].x_food,map->foods[i].y_food) || is_trap(map,map->foods[i].x_food,map->foods[i].y_food)){
-            map->foods[i].x_food = rand() % ((map->rooms[map->foods[i].number_room].x + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].x + 1) + 1) + ((map->rooms[map->foods[i].number_room].x + 1));
-            map->foods[i].y_food = rand() % ((map->rooms[map->foods[i].number_room].y + map->rooms[map->foods[i].number_room].size - 1) - (map->rooms[map->foods[i].number_room].y + 1) + 1) + ((map->rooms[map->foods[i].number_room].y + 1));
-        }
-    }
-    //Spells
-    for(int i = 0; i < 3; i++){
-        map->spells[i].number_room = map->number_Spell_room;
-        map->spells[i].type = rand() % 3 + 1;
-    }
-    for(int i = 0; i < 3; i++){
-        map->spells[i].x_spell = 0;
-        map->spells[i].y_spell = 0;
-        while(map->spells[i].x_spell == 0 || map->spells[i].y_spell == 0 || (map->spells[i].x_spell == map->x_stair && map->spells[i].y_spell == map->y_stair) || (map->spells[i].x_spell == map->x_create_paasword && map->spells[i].y_spell == map->y_create_paasword) || (map->spells[i].x_spell == map->x_fight_room && map->spells[i].y_spell == map->y_fight_room) || (map->spells[i].x_spell == map->x_Master_Key && map->spells[i].y_spell == map->y_Master_Key) || is_pillor(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_trap(map,map->spells[i].x_spell,map->spells[i].y_spell) || is_food(map,map->spells[i].x_spell,map->spells[i].y_spell)){
-            map->spells[i].x_spell = rand() % ((map->rooms[map->spells[i].number_room].x + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].x + 1) + 1) + ((map->rooms[map->spells[i].number_room].x + 1));
-            map->spells[i].y_spell = rand() % ((map->rooms[map->spells[i].number_room].y + map->rooms[map->spells[i].number_room].size - 1) - (map->rooms[map->spells[i].number_room].y + 1) + 1) + ((map->rooms[map->spells[i].number_room].y + 1));
-        }
-    }
-    //Wepons
-    for(int i = 0; i < 3; i++){
-        map->wepons[i].number_room = rand() % map->number_of_rooms;
-        while(map->wepons[i].number_room == map->number_Spell_room){
-            map->wepons[i].number_room = rand() % map->number_of_rooms;
-        }
-        map->wepons[i].type = rand() % 4 + 2;
-    }
-    for(int i = 0; i < 3; i++){
-        map->wepons[i].x_wepon = 0;
-        map->wepons[i].y_wepon = 0;
-        while(map->wepons[i].x_wepon == 0 || map->wepons[i].y_wepon == 0 || (map->wepons[i].x_wepon == map->x_stair && map->wepons[i].y_wepon == map->y_stair) || (map->wepons[i].x_wepon == map->x_create_paasword && map->wepons[i].y_wepon == map->y_create_paasword) || (map->wepons[i].x_wepon == map->x_fight_room && map->wepons[i].y_wepon == map->y_fight_room) || (map->wepons[i].x_wepon == map->x_Master_Key && map->wepons[i].y_wepon == map->y_Master_Key) || is_pillor(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_trap(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_food(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon) || is_spell(map,map->wepons[i].x_wepon,map->wepons[i].y_wepon)){
-            map->wepons[i].x_wepon = rand() % ((map->rooms[map->wepons[i].number_room].x + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].x + 1) + 1) + ((map->rooms[map->wepons[i].number_room].x + 1));
-            map->wepons[i].y_wepon = rand() % ((map->rooms[map->wepons[i].number_room].y + map->rooms[map->wepons[i].number_room].size - 1) - (map->rooms[map->wepons[i].number_room].y + 1) + 1) + ((map->rooms[map->wepons[i].number_room].y + 1));
-        }
-    }
-    //Golds
-    int wich_black = rand() % 5;
-    for(int i = 0; i < 3; i++){
-        map->golds[i].number_room = rand() % map->number_of_rooms;
-        while(map->golds[i].number_room == map->number_Spell_room){
-            map->golds[i].number_room = rand() % map->number_of_rooms;
-        }
-        if(i == wich_black){
-            map->golds[i].is_black = 1;
-            map->golds[i].worth = 500;
-        }
-        map->golds[i].worth = rand() % (300 - 100 + 1) + 100;
-        map->golds[i].is_black = 0;
-    }
-    for(int i = 0; i < 3; i++){
-        map->golds[i].x_gold = 0;
-        map->golds[i].y_gold = 0;
-        while(map->golds[i].x_gold == 0 || map->golds[i].y_gold == 0 || (map->golds[i].x_gold == map->x_stair && map->golds[i].y_gold == map->y_stair) || (map->golds[i].x_gold == map->x_create_paasword && map->golds[i].y_gold == map->y_create_paasword) || (map->golds[i].x_gold == map->x_fight_room && map->golds[i].y_gold == map->y_fight_room) || (map->golds[i].x_gold == map->x_Master_Key && map->golds[i].y_gold == map->y_Master_Key) || is_pillor(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_trap(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_food(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_spell(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_wepon(map,map->golds[i].x_gold,map->golds[i].y_gold)){
-            map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].x + 1) + 1) + ((map->rooms[map->golds[i].number_room].x + 1));
-            map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].y + 1) + 1) + ((map->rooms[map->golds[i].number_room].y + 1));
-        }
-    }
-    //treasure
-    if(number == 4){
-        map->x_end = 0;
-        map->y_end = 0;
-        while(map->x_end == 0 || map->y_end == 0 || (map->x_end == map->x_stair && map->y_end == map->y_stair) || (map->x_end == map->x_create_paasword && map->y_end == map->y_create_paasword) || (map->x_end == map->x_fight_room && map->y_end == map->y_fight_room) || (map->x_end == map->x_Master_Key && map->y_end == map->y_Master_Key) || is_pillor(map,map->x_end,map->y_end) || is_trap(map,map->x_end,map->y_end) || is_food(map,map->x_end,map->y_end) || is_spell(map,map->x_end,map->y_end) || is_wepon(map,map->x_end,map->y_end) || is_gold(map,map->x_end,map->y_end)){
-            map->x_end = rand() % ((map->rooms[map->number_Treasure_Room].x + map->rooms[map->number_Treasure_Room].size - 1) - (map->rooms[map->number_Treasure_Room].x + 1) + 1) + ((map->rooms[map->number_Treasure_Room].x + 1));
-            map->y_end = rand() % ((map->rooms[map->number_Treasure_Room].y + map->rooms[map->number_Treasure_Room].size - 1) - (map->rooms[map->number_Treasure_Room].y + 1) + 1) + ((map->rooms[map->number_Treasure_Room].y + 1));
-        }
-    }
-    //demons
-    if(number == 4){
         for(int i = 0; i < 5; i++){
             map->demons[i].number_of_room = rand() % map->number_of_rooms;
-            while(map->demons[i].number_of_room == map->number_Spell_room || map->demons[i].number_of_room == map->number_Treasure_Room){
-                map->demons[i].number_of_room = rand() % map->number_of_rooms;
-            }
-            map->demons[i].type = rand() % 5 + 1;
-        } 
-    }else{
-        for(int i = 0; i < 5; i++){
-            map->demons[i].number_of_room = rand() % map->number_of_rooms;
-            while(map->demons[i].number_of_room == map->number_Spell_room){
-                map->demons[i].number_of_room = rand() % map->number_of_rooms;
-            }
             map->demons[i].type = rand() % 5 + 1;
         }
-    }
-    for(int i = 0; i < 5; i++){
-        map->demons[i].x_demon = 0;
-        map->demons[i].y_demon = 0;
-        map->demons[i].can_move = 1;
-        while(map->demons[i].x_demon == 0 || map->demons[i].y_demon == 0 || (map->demons[i].x_demon == map->x_stair && map->demons[i].y_demon == map->y_stair) || (map->demons[i].x_demon == map->x_create_paasword && map->demons[i].y_demon == map->y_create_paasword) || (map->demons[i].x_demon == map->x_fight_room && map->demons[i].y_demon == map->y_fight_room) || (map->demons[i].x_demon == map->x_Master_Key && map->demons[i].y_demon == map->y_Master_Key) || is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_trap(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_food(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_spell(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_wepon(map,map->demons[i].x_demon,map->demons[i].y_demon) || is_gold(map,map->demons[i].x_demon,map->demons[i].y_demon)){
+        for(int i = 0; i < 5; i++){
+            map->demons[i].can_move = 1;
             map->demons[i].x_demon = rand() % ((map->rooms[map->demons[i].number_of_room].x + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].x + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].x + 1));
             map->demons[i].y_demon = rand() % ((map->rooms[map->demons[i].number_of_room].y + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].y + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].y + 1));
+            while(is_trap(map,map->demons[i].x_demon,map->demons[i].y_demon)){
+                map->demons[i].x_demon = rand() % ((map->rooms[map->demons[i].number_of_room].x + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].x + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].x + 1));
+                map->demons[i].y_demon = rand() % ((map->rooms[map->demons[i].number_of_room].y + map->rooms[map->demons[i].number_of_room].size - 1) - (map->rooms[map->demons[i].number_of_room].y + 1) + 1) + ((map->rooms[map->demons[i].number_of_room].y + 1));          
+            }
         }
-    }
-    for(int i = 0; i < 5; i++){
-        if(map->demons[i].type == 1){
-            map->demons[i].healt = 5;
+        for(int i = 0; i < 5; i++){
+            if(map->demons[i].type == 1){
+                map->demons[i].healt = 5;
+            }
+            else if(map->demons[i].type == 2){
+                map->demons[i].healt = 10;
+            }
+            else if(map->demons[i].type == 3){
+                map->demons[i].healt = 15;
+            }
+            else if(map->demons[i].type == 4){
+                map->demons[i].healt = 20;
+            }
+            else if(map->demons[i].type == 5){
+                map->demons[i].healt = 30;
+            }
         }
-        else if(map->demons[i].type == 2){
-            map->demons[i].healt = 10;
+        int wich_black = rand() % 5;
+        for(int i = 0; i < 3; i++){
+            map->golds[i].number_room = rand() % map->number_of_rooms;
+            if(i == wich_black){
+                map->golds[i].is_black = 1;
+                map->golds[i].worth = 500;
+            }
+            map->golds[i].worth = rand() % (300 - 100 + 1) + 100;
+            map->golds[i].is_black = 0;
         }
-        else if(map->demons[i].type == 3){
-            map->demons[i].healt = 15;
+        for(int i = 0; i < 3; i++){
+            map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].x + 1) + 1) + ((map->rooms[map->golds[i].number_room].x + 1));
+            map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].y + 1) + 1) + ((map->rooms[map->golds[i].number_room].y + 1));
+            while(is_trap(map,map->golds[i].x_gold,map->golds[i].y_gold) || is_demon(map,map->golds[i].x_gold,map->golds[i].y_gold)){
+                map->golds[i].x_gold = rand() % ((map->rooms[map->golds[i].number_room].x + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].x + 1) + 1) + ((map->rooms[map->golds[i].number_room].x + 1));
+                map->golds[i].y_gold = rand() % ((map->rooms[map->golds[i].number_room].y + map->rooms[map->golds[i].number_room].size - 1) - (map->rooms[map->golds[i].number_room].y + 1) + 1) + ((map->rooms[map->golds[i].number_room].y + 1));
+            }
         }
-        else if(map->demons[i].type == 4){
-            map->demons[i].healt = 20;
+        for(int i = 0; i < 3; i++){
+            map->pillors[i].number_room = rand() % map->number_of_rooms;
         }
-        else if(map->demons[i].type == 5){
-            map->demons[i].healt = 30;
+        for(int i = 0; i < 3; i++){
+            map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].x + 1) + 1) + ((map->rooms[map->pillors[i].number_room].x + 1));
+            map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].y + 1) + 1) + ((map->rooms[map->pillors[i].number_room].y + 1));
+            while(is_gold(map,map->pillors[i].x_pillar,map->pillors[i].y_pillar) || is_demon(map,map->pillors[i].x_pillar,map->pillors[i].y_pillar) || is_trap(map,map->pillors[i].x_pillar,map->pillors[i].y_pillar)){
+                map->pillors[i].x_pillar = rand() % ((map->rooms[map->pillors[i].number_room].x + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].x + 1) + 1) + ((map->rooms[map->pillors[i].number_room].x + 1));
+                map->pillors[i].y_pillar = rand() % ((map->rooms[map->pillors[i].number_room].y + map->rooms[map->pillors[i].number_room].size - 1) - (map->rooms[map->pillors[i].number_room].y + 1) + 1) + ((map->rooms[map->pillors[i].number_room].y + 1));
+            }
         }
     }
     map->number_of_wepons_use = 0;
@@ -1209,6 +1286,22 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             p->x = p->x_map4;
             p->y = p->y_map4;
         }
+    }else if(number_map == 5){
+        if(p->x_map5 == 0 && p->y_map5 == 0){
+            int start_room = rand() % map->number_of_rooms;
+            p->x = 0;
+            p->y = 0;
+            p->last_map = number_map;
+            move(0,0);
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            while(p->x == 0 || p->y == 0|| is_pillor(map,p->x,p->y) || is_trap(map,p->x,p->y) || is_gold(map,p->x,p->y)){
+                p->x = rand() % ((map->rooms[start_room].x + map->rooms[start_room].size - 1) - (map->rooms[start_room].x + 1) + 1) + ((map->rooms[start_room].x + 1));
+                p->y = rand() % ((map->rooms[start_room].y + map->rooms[start_room].size - 1) - (map->rooms[start_room].y + 1) + 1) + ((map->rooms[start_room].y + 1));
+            }
+        }else{
+            p->x = p->x_map5;
+            p->y = p->y_map5;
+        }
     }
     move(0,0);
     printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
@@ -1229,14 +1322,22 @@ void move_player(struct Map *map,struct Player *p,int number_map){
     print(map,p->x,p->y,p);
     time_t time_start;
     while (1){
-        if(number_map == 4 && p->x == map->x_end && p->y == map->y_end){
-            p->win_last_game = 1;
+        if(number_map == 5 && is_win(map)){
             game_over = 1;
+            p->win_last_game = 1;
             clear();
             refresh();
             return;
         }
-        if(is_spell_room(map,p->x,p->y)){
+        if(number_map == 4 && p->x == map->x_end && p->y == map->y_end){
+            clear();
+            refresh();
+            p->last_map = 5;
+            p->step = 0;
+            move_player(&game.maps[4],p,5);
+            return;
+        }
+        if(number_map != 5 && is_spell_room(map,p->x,p->y)){
             p->health -= 1;
             move(0,0);
             clrtoeol();
@@ -1773,7 +1874,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
         }
-        if(c == 's'){
+        if(number_map != 5 && c == 's'){
             int index_room;
             index_room = is_room_and_index(map,p->x,p->y);
             if(index_room){
@@ -1976,8 +2077,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 }
             }
         }
-        if(c == KEY_RIGHT){
+        if(number_map != 5 && c == KEY_RIGHT){
             if(is_stair(map,p->x,p->y)){
+                p->step = 0;
                 if(p->last_map == 1){
                     clear();
                     p->last_map = 2;
@@ -2004,8 +2106,9 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 }
             }
         }
-        if(c == KEY_LEFT){
+        if(number_map != 5 && c == KEY_LEFT){
             if(is_stair(map,p->x,p->y)){
+                p->step = 0;
                 if(p->last_map == 2){
                     clear();
                     p->last_map = 1;
@@ -2049,6 +2152,10 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 p->x_map4 = p->x;
                 p->y_map4 = p->y;
             }
+            if(p->last_map == 5){
+                p->x_map5 = p->x;
+                p->y_map5 = p->y;
+            }
             clear();
             refresh();
             show_foods(p);
@@ -2056,6 +2163,26 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             return;
         }
         if(c == 'i'){
+            if(game_over){
+                clear();
+                refresh();
+                return;
+            }
+            if(p->win_last_game == 1){
+                clear();
+                refresh();
+                return;
+            }
+            if(p->win_last_game == 0){
+                clear();
+                refresh();
+                return;
+            }
+            if(p->win_last_game == -1){
+                clear();
+                refresh();
+                return;
+            }
             if(p->last_map == 1){
                 p->x_map1 = p->x;
                 p->y_map1 = p->y;
@@ -2072,13 +2199,17 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 p->x_map4 = p->x;
                 p->y_map4 = p->y;
             }
+            if(p->last_map == 5){
+                p->x_map5 = p->x;
+                p->y_map5 = p->y;
+            }
             clear();
             refresh();
             show_wepons(p);
             move_player(map,p,p->last_map);
             return;
         }
-        if(c == 'm'){
+        if(number_map != 5 && c == 'm'){
             if(p->last_map == 1){
                 p->x_map1 = p->x;
                 p->y_map1 = p->y;
@@ -2117,6 +2248,10 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             if(p->last_map == 4){
                 p->x_map4 = p->x;
                 p->y_map4 = p->y;
+            }
+            if(p->last_map == 5){
+                p->x_map5 = p->x;
+                p->y_map5 = p->y;
             }
             clear();
             refresh();
@@ -2188,6 +2323,10 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             if(p->last_map == 4){
                 p->x_map4 = p->x;
                 p->y_map4 = p->y;
+            }
+            if(p->last_map == 5){
+                p->x_map5 = p->x;
+                p->y_map5 = p->y;
             }
             return;
         }
@@ -2790,24 +2929,36 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(p->type_wepon_chosen == 2){
                 throw_wepon(2,map,p,0);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
             }
             if(p->type_wepon_chosen == 3){
                 throw_wepon(3,map,p,0);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
             }
             if(p->type_wepon_chosen == 4){
                 throw_wepon(4,map,p,0);
+                move_demon(map,p);
+                print(map,p->x,p->y,p);
             }
         }
         if(c == 'A'){
             if(last_throw != 0){
                 if(p->type_wepon_chosen == 2){
                     throw_wepon(2,map,p,1);
+                    move_demon(map,p);
+                    print(map,p->x,p->y,p);
                 }
                 if(p->type_wepon_chosen == 3){
                     throw_wepon(3,map,p,1);
+                    move_demon(map,p);
+                    print(map,p->x,p->y,p);
                 }
                 if(p->type_wepon_chosen == 4){
                     throw_wepon(4,map,p,1);
+                    move_demon(map,p);
+                    print(map,p->x,p->y,p);
                 }
             }
         }
@@ -3204,16 +3355,16 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
     init_pair(1,COLOR_RED,COLOR_BLACK);
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
     if(is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_pillor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_demon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
-        if(is_food(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_food(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("food",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
         if(is_trap(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("trap",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_spell(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_spell(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("spell",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_wepon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_wepon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("wepon",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
         if(is_wepon_use(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
@@ -3222,10 +3373,10 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         if(is_gold(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("gold",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_master_key(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_master_key(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("master",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             if(p->last_map == 1){
                 p->x_map1 = p->x;
                 p->y_map1 = p->y;
@@ -3244,26 +3395,26 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             }
             move_effect("fight",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_create_password(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && (map->x_password_door != 0 && map->y_password_door != 0)){
+        if(map->number_of_rooms != 1 && is_create_password(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && (map->x_password_door != 0 && map->y_password_door != 0)){
             create_password(map,time_start);
         }
         if(is_trap(map,p->x,p->y)){
             mvprintw(p->y,p->x,"^");
             refresh();
         }
-        else if(is_stair(map,p->x,p->y)){
+        else if(map->number_of_rooms != 1 && is_stair(map,p->x,p->y)){
             mvprintw(p->y,p->x,"<");
             refresh();
         }
-        else if(is_door(map,p->x,p->y) && !is_password_door(map,p->x,p->y) && !is_secret_door(map,p->x,p->y)){
+        else if(map->number_of_rooms != 1 && is_door(map,p->x,p->y) && !is_password_door(map,p->x,p->y) && !is_secret_door(map,p->x,p->y)){
             mvprintw(p->y,p->x,"+");
             refresh();
         }
-        else if(is_secret_door(map,p->x,p->y)){
+        else if(map->number_of_rooms != 1 && is_secret_door(map,p->x,p->y)){
             mvprintw(p->y,p->x,"?");
             refresh();
         }
-        else if(is_password_door(map,p->x,p->y)){
+        else if(map->number_of_rooms != 1 && is_password_door(map,p->x,p->y)){
             if(map->x_password_door == 0 && map->y_password_door == 0){
                 attron(COLOR_PAIR(2));
                 mvprintw(p->y,p->x,"@");
@@ -3285,7 +3436,7 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
         mvprintw(p->y,p->x,"P");
         p->step += 1;
         refresh();
-    }if(!is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+    }if(map->number_of_rooms != 1 && !is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
         if(is_corridor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             if(is_corridor(map,p->x,p->y)){
                 mvprintw(p->y,p->x,"#");
@@ -3412,16 +3563,16 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         p->step += 1;
     }
     mvprintw(y_before,x_before," ");
-    if(is_food(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_food(map,p->x,p->y)){
         move_effect("food",p,map,p->x,p->y);
     }
     if(is_trap(map,p->x,p->y)){
         move_effect("trap",p,map,p->x,p->y);
     }
-    if(is_spell(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_spell(map,p->x,p->y)){
         move_effect("spell",p,map,p->x,p->y);
     }
-    if(is_wepon(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_wepon(map,p->x,p->y)){
         move_effect("wepon",p,map,p->x,p->y);
     }
     if(is_wepon_use(map,p->x,p->y)){
@@ -3430,10 +3581,10 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
     if(is_gold(map,p->x,p->y)){
         move_effect("gold",p,map,p->x,p->y);
     }
-    if(is_master_key(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_master_key(map,p->x,p->y)){
         move_effect("master",p,map,p->x,p->y);
     }
-    if(is_fight_room(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_fight_room(map,p->x,p->y)){
         if(p->last_map == 1){
             p->x_map1 = p->x;
             p->y_map1 = p->y;
@@ -3452,29 +3603,29 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         }
         move_effect("fight",p,map,p->x,p->y);
     }
-    if(is_create_password(map,p->x,p->y)){
+    if(map->number_of_rooms != 1 && is_create_password(map,p->x,p->y)){
         create_password(map,time_start);
     }
     mvprintw(p->y,p->x,"P");
     refresh();
-    while(is_corridor(map,p->x + second_x,p->y + second_y)){
+    while(map->number_of_rooms != 1 && is_corridor(map,p->x + second_x,p->y + second_y)){
     p->y += second_y;
     p->x += second_x;
     p->step = 0;
     }
-    if(is_corridor(map,x_before,y_before)){
+    if(map->number_of_rooms != 1 && is_corridor(map,x_before,y_before)){
         mvprintw(y_before,x_before,"#");
         refresh();
     }
-    else if(is_door(map,x_before,y_before) && !is_password_door(map,x_before,y_before) && !is_secret_door(map,x_before,y_before)){
+    else if(map->number_of_rooms != 1 && is_door(map,x_before,y_before) && !is_password_door(map,x_before,y_before) && !is_secret_door(map,x_before,y_before)){
         mvprintw(y_before,x_before,"+");
         refresh();
     }
-    else if(is_secret_door(map,x_before,y_before)){
+    else if(map->number_of_rooms != 1 && is_secret_door(map,x_before,y_before)){
         mvprintw(y_before,x_before,"?");
         refresh();
     }
-    else if(is_password_door(map,x_before,y_before)){
+    else if(map->number_of_rooms != 1 && is_password_door(map,x_before,y_before)){
         if(map->x_password_door == 0 && map->y_password_door == 0){
             start_color();
             init_pair(1,COLOR_GREEN,COLOR_WHITE);
@@ -3502,7 +3653,7 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         if(is_trap(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("trap",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(map->number_of_rooms != 1 && is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             move_effect("fight",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
         if(is_gold(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
@@ -3521,7 +3672,7 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
         p->step += 1;
         mvprintw(p->y,p->x,"P");
         refresh();
-    }if(!is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+    }if(map->number_of_rooms != 1 && !is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
         if(is_corridor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             mvprintw(p->y,p->x,"#");
             refresh();
@@ -3570,6 +3721,9 @@ void save_map(char filename[100], struct Map *map,int number) {
     case 4:
         strcpy(perfix, "-map4.bin");
         break;
+    case 5:
+        strcpy(perfix, "-map5.bin");
+        break;
     }
     strcat(filename,perfix);   
     FILE *file = fopen(filename, "wb");
@@ -3596,6 +3750,9 @@ void load_map(char filename[100], struct Map *map,int number) {
         break;
     case 4:
         strcpy(perfix, "-map4.bin");
+        break;
+    case 5:
+        strcpy(perfix, "-map5.bin");
         break;
     }
     strcat(filename,perfix);   
@@ -3638,281 +3795,353 @@ void print_room(struct Map *map,struct Player *p){
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
     init_pair(3,COLOR_YELLOW,COLOR_BLACK);
     init_pair(4,COLOR_YELLOW,COLOR_BLACK);
-    if(end - start < 10 && map->last_password != 0){
-        move(0,60);
-        printw("The password: %d",map->last_password);
-    }
-    for(int i = 0; i < map->number_of_rooms; i++){
-        if(map->rooms[i].is_seen){
-            int x_1 = map->rooms[i].x;  
-            int x_2 = map->rooms[i].x + map->rooms[i].size;  
-            int y_1 = map->rooms[i].y;  
-            int y_3 = map->rooms[i].y + map->rooms[i].size;  
-            if(i == map->number_Spell_room){
-                for (int j = 0; j <= map->rooms[i].size; j++) {  
-                    attron(COLOR_PAIR(1));
-                    move(y_1, x_1 + j);
-                    printw("_");  
-                    move(y_3, x_1 + j);  
-                    printw("_");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }  
-                for (int j = 0; j < map->rooms[i].size; j++){  
-                    attron(COLOR_PAIR(1));
-                    move(y_1 + j + 1, x_1);  
-                    printw("|");
-                    move(y_1 + j + 1, x_2);  
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
+    if(map->number_of_rooms != 1){
+        if(end - start < 10 && map->last_password != 0){
+            move(0,60);
+            printw("The password: %d",map->last_password);
+        }
+        for(int i = 0; i < map->number_of_rooms; i++){
+            if(map->rooms[i].is_seen){
+                int x_1 = map->rooms[i].x;  
+                int x_2 = map->rooms[i].x + map->rooms[i].size;  
+                int y_1 = map->rooms[i].y;  
+                int y_3 = map->rooms[i].y + map->rooms[i].size;  
+                if(i == map->number_Spell_room){
+                    for (int j = 0; j <= map->rooms[i].size; j++) {  
+                        attron(COLOR_PAIR(1));
+                        move(y_1, x_1 + j);
+                        printw("_");  
+                        move(y_3, x_1 + j);  
+                        printw("_");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }  
+                    for (int j = 0; j < map->rooms[i].size; j++){  
+                        attron(COLOR_PAIR(1));
+                        move(y_1 + j + 1, x_1);  
+                        printw("|");
+                        move(y_1 + j + 1, x_2);  
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                }else if(map->has_treasure_room && i == map->number_Treasure_Room){
+                    for (int j = 0; j <= map->rooms[i].size; j++) {  
+                        attron(COLOR_PAIR(4));
+                        move(y_1, x_1 + j);
+                        printw("_");  
+                        move(y_3, x_1 + j);  
+                        printw("_");
+                        attroff(COLOR_PAIR(4));
+                        refresh();
+                    }  
+                    for (int j = 0; j < map->rooms[i].size; j++){  
+                        attron(COLOR_PAIR(4));
+                        move(y_1 + j + 1, x_1);  
+                        printw("|");
+                        move(y_1 + j + 1, x_2);  
+                        printw("|");
+                        attroff(COLOR_PAIR(4));
+                        refresh();
+                    }
                 }
-            }else if(map->has_treasure_room && i == map->number_Treasure_Room){
-                for (int j = 0; j <= map->rooms[i].size; j++) {  
-                    attron(COLOR_PAIR(4));
-                    move(y_1, x_1 + j);
-                    printw("_");  
-                    move(y_3, x_1 + j);  
-                    printw("_");
-                    attroff(COLOR_PAIR(4));
-                    refresh();
-                }  
-                for (int j = 0; j < map->rooms[i].size; j++){  
-                    attron(COLOR_PAIR(4));
-                    move(y_1 + j + 1, x_1);  
-                    printw("|");
-                    move(y_1 + j + 1, x_2);  
-                    printw("|");
-                    attroff(COLOR_PAIR(4));
-                    refresh();
+                else{
+                    for (int j = 0; j <= map->rooms[i].size; j++) {  
+                        move(y_1, x_1 + j);
+                        printw("_");  
+                        move(y_3, x_1 + j);  
+                        printw("_");  
+                    }  
+                    for (int j = 0; j < map->rooms[i].size; j++){  
+                        move(y_1 + j + 1, x_1);  
+                        printw("|");
+                        move(y_1 + j + 1, x_2);  
+                        printw("|");  
+                    }
                 }
-            }
-            else{
-                for (int j = 0; j <= map->rooms[i].size; j++) {  
-                    move(y_1, x_1 + j);
-                    printw("_");  
-                    move(y_3, x_1 + j);  
-                    printw("_");  
-                }  
-                for (int j = 0; j < map->rooms[i].size; j++){  
-                    move(y_1 + j + 1, x_1);  
-                    printw("|");
-                    move(y_1 + j + 1, x_2);  
-                    printw("|");  
-                }
-            }
-            for(int j = 0; j < 2; j++){
-                mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"+");
-                mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
-            }
-            if(i == map->number_Password_Doors_room){
-                if(map->x_password_door == 0 && map->y_password_door == 0){
-                    start_color();
-                    attron(COLOR_PAIR(2));
-                    mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
-                    attroff(COLOR_PAIR(2));
+                for(int j = 0; j < 2; j++){
+                    mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"+");
                     mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
-                    refresh();
-                }else{
-                    start_color();
-                    attron(COLOR_PAIR(1));
-                    mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
-                    attroff(COLOR_PAIR(1));
-                    mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
-                    refresh();
                 }
-            }
-            if(i == map->number_Spell_room){
-                if(i == 0){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("_");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 1){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 2){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("_");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 3){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 4){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 5){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("_");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 6){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("|");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-                if(i == 7){
-                    attron(COLOR_PAIR(1));
-                    move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
-                    printw("_");
-                    move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
-                    printw("|");
-                    attroff(COLOR_PAIR(1));
-                    refresh();
-                }
-            }
-            if(map->has_treasure_room && i == map->number_Treasure_Room){
-                move(map->y_end,map->x_end);
-                printw("%s",y);
-                refresh();
-            }
-            for(int j = 0; j < 3; j++){
-                if(map->foods[j].number_room == i && (map->foods[j].x_food != 0)){
-                    move(map->foods[j].y_food,map->foods[j].x_food);
-                    if(map->foods[j].type == 1){
-                        printw("%s",l);
-                    }
-                    if(map->foods[j].type == 2){
-                        printw("%s",o);
-                    }
-                    if(map->foods[j].type == 3){
-                        printw("%s",u);
-                    }
-                    if(map->foods[j].type == 4){
-                        printw("%s",n);
-                    }
-                }
-            }
-            for(int j = 0; j < 3; j++){
-                if(map->spells[j].number_room == i && (map->spells[j].x_spell != 0)){
-                    move(map->spells[j].y_spell,map->spells[j].x_spell);
-                    if(map->spells[j].type == 1){
-                        printw("%s",f);
-                    }
-                    if(map->spells[j].type == 2){
-                        printw("%s",g);
-                    }
-                    if(map->spells[j].type == 3){
-                        printw("%s",h);
-                    }
-                }
-            }
-            for(int j = 0; j < 3; j++){
-                if(map->wepons[j].number_room == i && (map->wepons[j].x_wepon != 0)){
-                    move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
-                    if(map->wepons[j].type == 1){
-                        printw("%s",a);
-                    }
-                    if(map->wepons[j].type == 2){
-                        printw("%s",b);
-                    }
-                    if(map->wepons[j].type == 3){
-                        printw("%s",c);
-                    }
-                    if(map->wepons[j].type == 4){
-                        printw("%s",d);
-                    }
-                    if(map->wepons[j].type == 5){
-                        printw("%s",e);
-                    }
-                }
-            }
-            for(int j = 0; j < map->number_of_wepons_use; j++){
-                if(map->wepons_use[j].x_wepon != 0){
-                    move(map->wepons_use[j].y_wepon,map->wepons_use[j].x_wepon);
-                    if(map->wepons_use[j].type == 2){
-                        printw("%s",b);
-                    }
-                    if(map->wepons_use[j].type == 3){
-                        printw("%s",c);
-                    }
-                    if(map->wepons_use[j].type == 4){
-                        printw("%s",d);
-                    }
-                }
-            }
-            for(int j = 0; j < 5; j++){
-                if(map->demons[j].number_of_room == i && (map->demons[j].x_demon != 0)){
-                    move(map->demons[j].y_demon,map->demons[j].x_demon);
-                    if(map->demons[j].type == 1){
-                        printw("D");
-                    }
-                    if(map->demons[j].type == 2){
-                        printw("F");
-                    }
-                    if(map->demons[j].type == 3){
-                        printw("G");
-                    }
-                    if(map->demons[j].type == 4){
-                        printw("S");
-                    }
-                    if(map->demons[j].type == 5){
-                        printw("U");
-                    }
-                }
-            }
-            for(int j = 0; j < 3; j++){
-                if(map->golds[j].number_room == i && (map->golds[j].x_gold != 0)){
-                    move(map->golds[j].y_gold,map->golds[j].x_gold);
-                    if(map->golds[j].is_black){
-                        printw("%s",v);
+                if(i == map->number_Password_Doors_room){
+                    if(map->x_password_door == 0 && map->y_password_door == 0){
+                        start_color();
+                        attron(COLOR_PAIR(2));
+                        mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
+                        attroff(COLOR_PAIR(2));
+                        mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
+                        refresh();
                     }else{
-                        printw("%s",m);
+                        start_color();
+                        attron(COLOR_PAIR(1));
+                        mvprintw(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door,"@");
+                        attroff(COLOR_PAIR(1));
+                        mvprintw(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door,"+");
+                        refresh();
                     }
                 }
-            }
-            for(int j = 0; j < 3; j++){
-                if(map->pillors[j].number_room == i){
-                    mvprintw(map->pillors[j].y_pillar,map->pillors[j].x_pillar,"O");
+                if(i == map->number_Spell_room){
+                    if(i == 0){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("_");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 1){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 2){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("_");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 3){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 4){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 5){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("_");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 6){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("|");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                    if(i == 7){
+                        attron(COLOR_PAIR(1));
+                        move(map->rooms[i].doors[0].y_door,map->rooms[i].doors[0].x_door);
+                        printw("_");
+                        move(map->rooms[i].doors[1].y_door,map->rooms[i].doors[1].x_door);
+                        printw("|");
+                        attroff(COLOR_PAIR(1));
+                        refresh();
+                    }
+                }
+                if(map->has_treasure_room && i == map->number_Treasure_Room){
+                    move(map->y_end,map->x_end);
+                    printw("%s",y);
+                    refresh();
+                }
+                for(int j = 0; j < 3; j++){
+                    if(map->foods[j].number_room == i && (map->foods[j].x_food != 0)){
+                        move(map->foods[j].y_food,map->foods[j].x_food);
+                        if(map->foods[j].type == 1){
+                            printw("%s",l);
+                        }
+                        if(map->foods[j].type == 2){
+                            printw("%s",o);
+                        }
+                        if(map->foods[j].type == 3){
+                            printw("%s",u);
+                        }
+                        if(map->foods[j].type == 4){
+                            printw("%s",n);
+                        }
+                    }
+                }
+                for(int j = 0; j < 3; j++){
+                    if(map->spells[j].number_room == i && (map->spells[j].x_spell != 0)){
+                        move(map->spells[j].y_spell,map->spells[j].x_spell);
+                        if(map->spells[j].type == 1){
+                            printw("%s",f);
+                        }
+                        if(map->spells[j].type == 2){
+                            printw("%s",g);
+                        }
+                        if(map->spells[j].type == 3){
+                            printw("%s",h);
+                        }
+                    }
+                }
+                for(int j = 0; j < 3; j++){
+                    if(map->wepons[j].number_room == i && (map->wepons[j].x_wepon != 0)){
+                        move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
+                        if(map->wepons[j].type == 1){
+                            printw("%s",a);
+                        }
+                        if(map->wepons[j].type == 2){
+                            printw("%s",b);
+                        }
+                        if(map->wepons[j].type == 3){
+                            printw("%s",c);
+                        }
+                        if(map->wepons[j].type == 4){
+                            printw("%s",d);
+                        }
+                        if(map->wepons[j].type == 5){
+                            printw("%s",e);
+                        }
+                    }
+                }
+                for(int j = 0; j < map->number_of_wepons_use; j++){
+                    if(map->wepons_use[j].x_wepon != 0){
+                        move(map->wepons_use[j].y_wepon,map->wepons_use[j].x_wepon);
+                        if(map->wepons_use[j].type == 2){
+                            printw("%s",b);
+                        }
+                        if(map->wepons_use[j].type == 3){
+                            printw("%s",c);
+                        }
+                        if(map->wepons_use[j].type == 4){
+                            printw("%s",d);
+                        }
+                    }
+                }
+                for(int j = 0; j < 5; j++){
+                    if(map->demons[j].number_of_room == i && (map->demons[j].x_demon != 0)){
+                        move(map->demons[j].y_demon,map->demons[j].x_demon);
+                        if(map->demons[j].type == 1){
+                            printw("D");
+                        }
+                        if(map->demons[j].type == 2){
+                            printw("F");
+                        }
+                        if(map->demons[j].type == 3){
+                            printw("G");
+                        }
+                        if(map->demons[j].type == 4){
+                            printw("S");
+                        }
+                        if(map->demons[j].type == 5){
+                            printw("U");
+                        }
+                    }
+                }
+                for(int j = 0; j < 3; j++){
+                    if(map->golds[j].number_room == i && (map->golds[j].x_gold != 0)){
+                        move(map->golds[j].y_gold,map->golds[j].x_gold);
+                        if(map->golds[j].is_black){
+                            printw("%s",v);
+                        }else{
+                            printw("%s",m);
+                        }
+                    }
+                }
+                for(int j = 0; j < 3; j++){
+                    if(map->pillors[j].number_room == i){
+                        mvprintw(map->pillors[j].y_pillar,map->pillors[j].x_pillar,"O");
+                    }
+                }
+                if(map->number_room_stair == i){
+                    mvprintw(map->y_stair,map->x_stair,"<");
+                }
+                if(map->number_Password_Doors_room == i){
+                    mvprintw(map->y_create_paasword,map->x_create_paasword,"&");
+                }
+                if(map->number_Master_Key_room == i && (map->x_Master_Key != 0)){
+                    move(map->y_Master_Key,map->x_Master_Key);
+                    attron(COLOR_PAIR(3));
+                    printw("%s",r);
+                    attroff(COLOR_PAIR(3));
+                    refresh();
                 }
             }
-            if(map->number_room_stair == i){
-                mvprintw(map->y_stair,map->x_stair,"<");
+        }
+    }else{
+        int x_1 = map->rooms[0].x;  
+        int x_2 = map->rooms[0].x + map->rooms[0].size;  
+        int y_1 = map->rooms[0].y;  
+        int y_3 = map->rooms[0].y + map->rooms[0].size; 
+        for (int j = 0; j <= map->rooms[0].size; j++) {  
+            attron(COLOR_PAIR(4));
+            move(y_1, x_1 + j);
+            printw("_");  
+            move(y_3, x_1 + j);  
+            printw("_");
+            attroff(COLOR_PAIR(4));
+            refresh();
+        }  
+        for (int j = 0; j < map->rooms[0].size; j++){  
+            attron(COLOR_PAIR(4));
+            move(y_1 + j + 1, x_1);  
+            printw("|");
+            move(y_1 + j + 1, x_2);  
+            printw("|");
+            attroff(COLOR_PAIR(4));
+            refresh();
+        }
+        for(int j = 0; j < 5; j++){
+            if(map->demons[j].x_demon != 0){
+                move(map->demons[j].y_demon,map->demons[j].x_demon);
+                if(map->demons[j].type == 1){
+                    printw("D");
+                }
+                if(map->demons[j].type == 2){
+                    printw("F");
+                }
+                if(map->demons[j].type == 3){
+                    printw("G");
+                }
+                if(map->demons[j].type == 4){
+                    printw("S");
+                }
+                if(map->demons[j].type == 5){
+                    printw("U");
+                }
             }
-            if(map->number_Password_Doors_room == i){
-                mvprintw(map->y_create_paasword,map->x_create_paasword,"&");
+        }
+        for(int j = 0; j < 3; j++){
+            if(map->golds[j].x_gold != 0){
+                move(map->golds[j].y_gold,map->golds[j].x_gold);
+                if(map->golds[j].is_black){
+                    printw("%s",v);
+                }else{
+                    printw("%s",m);
+                }
             }
-            if(map->number_Master_Key_room == i && (map->x_Master_Key != 0)){
-                move(map->y_Master_Key,map->x_Master_Key);
-                attron(COLOR_PAIR(3));
-                printw("%s",r);
-                attroff(COLOR_PAIR(3));
-                refresh();
+        }
+        for(int j = 0; j < 3; j++){
+            mvprintw(map->pillors[j].y_pillar,map->pillors[j].x_pillar,"O");
+        }
+        for(int j = 0; j < map->number_of_wepons_use; j++){
+            if(map->wepons_use[j].x_wepon != 0){
+                move(map->wepons_use[j].y_wepon,map->wepons_use[j].x_wepon);
+                if(map->wepons_use[j].type == 2){
+                    printw("%s",b);
+                }
+                if(map->wepons_use[j].type == 3){
+                    printw("%s",c);
+                }
+                if(map->wepons_use[j].type == 4){
+                    printw("%s",d);
+                }
             }
         }
     }
@@ -3990,14 +4219,18 @@ void check_corrider(struct Map *map,int x, int y){
 }
 
 void print(struct Map *map,int x, int y,struct Player *p){
-    print_corridor(map);
+    if(map->number_of_rooms != 1){
+        print_corridor(map);
+    }
     print_room(map,p);
     if(is_room(map,x,y)){
         print_room(map,p);
     }
     else{
-        check_corrider(map,x,y);
-        print_corridor(map);        
+        if(map->number_of_rooms != 1){
+            check_corrider(map,x,y);
+            print_corridor(map); 
+        }
     }
 }
 
@@ -4088,10 +4321,12 @@ void create_new_player() {
     p.x_map2 = 0;
     p.x_map3 = 0;
     p.x_map4 = 0;
+    p.x_map5 = 0;
     p.y_map1 = 0;
     p.y_map2 = 0;
     p.y_map3 = 0;
     p.y_map4 = 0;
+    p.y_map5 = 0;
     p.hungry = 5;
     p.game_number = 0;
     p.total_game = 0;
@@ -4622,6 +4857,7 @@ void create_new_game(char name[100]){
     start_color();
     // init_pair(1,COLOR_GREEN,COLOR_BLACK);
     // init_pair(2,COLOR_RED,COLOR_BLACK);
+    first_damage = 0;
     char name1[100];
     char name2[100]; 
     char name3[100];
@@ -4634,6 +4870,10 @@ void create_new_game(char name[100]){
     char name10[100];
     char name11[100];
     char name12[100];
+    char name13[100];
+    char name14[100];
+    char name15[100];
+    char name16[100];
     strcpy(name1,name);
     strcpy(name2,name);
     strcpy(name3,name);
@@ -4646,14 +4886,20 @@ void create_new_game(char name[100]){
     strcpy(name10,name);
     strcpy(name11,name);
     strcpy(name12,name);
+    strcpy(name13,name);
+    strcpy(name14,name);
+    strcpy(name15,name);
+    strcpy(name16,name);
     remove_file(name9,1);
-    remove_file(name10,1);
-    remove_file(name11,1);
-    remove_file(name12,1);
+    remove_file(name10,2);
+    remove_file(name11,3);
+    remove_file(name12,4);
+    remove_file(name16,5);
     generate_map(&game.maps[0],name1,1);
     generate_map(&game.maps[1],name2,2);
     generate_map(&game.maps[2],name3,3);
     generate_map(&game.maps[3],name4,4);
+    generate_map(&game.maps[4],name13,5);
     game.maps[0].last_password = 0;
     game.maps[1].last_password = 0;
     game.maps[2].last_password = 0;
@@ -4680,10 +4926,12 @@ void create_new_game(char name[100]){
     p.x_map2 = 0;
     p.x_map3 = 0;
     p.x_map4 = 0;
+    p.x_map5 = 0;
     p.y_map1 = 0;
     p.y_map2 = 0;
     p.y_map3 = 0;
     p.y_map4 = 0;
+    p.y_map5 = 0;
     p.hungry = 5;
     p.win_last_game = 2;
     p.last_map = 1;
@@ -4699,10 +4947,10 @@ void create_new_game(char name[100]){
     if(p.win_last_game == 1){
         move(10,10);
         attron(COLOR_PAIR(2));
-        printw("Congratulations. You won!");
+        printw("Congratulations. You won!\n          total gold you get: %d\n          the score you get: %d",p.gold,p.gold * (p.game_number + 1));
         attroff(COLOR_PAIR(2));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         p.game_number += 1;
@@ -4717,8 +4965,8 @@ void create_new_game(char name[100]){
             int gold, gold2, game_number, time_of_play;
             sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
             if(!strcmp(name,name_x)){
-                gold = p.gold;
-                gold2 = p.gold;
+                gold += p.gold;
+                gold2 += p.gold * p.game_number;
                 game_number = p.game_number;
                 time_of_play = p.total_game;
                 fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
@@ -4750,10 +4998,12 @@ void create_new_game(char name[100]){
         p.x_map2 = 0;
         p.x_map3 = 0;
         p.x_map4 = 0;
+        p.x_map5 = 0;
         p.y_map1 = 0;
         p.y_map2 = 0;
         p.y_map3 = 0;
         p.y_map4 = 0;
+        p.y_map5 = 0;
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
@@ -4763,6 +5013,7 @@ void create_new_game(char name[100]){
         remove_file(name6,2);
         remove_file(name7,3);
         remove_file(name8,4);
+        remove_file(name14,5);
         return;
     }
     else if(p.win_last_game == 0){
@@ -4771,7 +5022,7 @@ void create_new_game(char name[100]){
         printw("Sorry. You lost the game!");
         attroff(COLOR_PAIR(1));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         p.total_game += 1;
@@ -4815,10 +5066,12 @@ void create_new_game(char name[100]){
         p.x_map2 = 0;
         p.x_map3 = 0;
         p.x_map4 = 0;
+        p.x_map5 = 0;
         p.y_map1 = 0;
         p.y_map2 = 0;
         p.y_map3 = 0;
         p.y_map4 = 0;
+        p.y_map5 = 0;
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
@@ -4828,6 +5081,7 @@ void create_new_game(char name[100]){
         remove_file(name6,2);
         remove_file(name7,3);
         remove_file(name8,4);
+        remove_file(name14,5);
         return;
     }
     else if(p.win_last_game == -1){
@@ -4836,6 +5090,7 @@ void create_new_game(char name[100]){
         save_map(name6,&game.maps[1],2);
         save_map(name7,&game.maps[2],3);
         save_map(name8,&game.maps[3],4);
+        save_map(name14,&game.maps[4],5);
         return;
     }
 }
@@ -4853,6 +5108,8 @@ void continue_last_game(char name[100]){
     char name7[100];
     char name8[100];
     char name9[100];
+    char name10[100];
+    char name11[100];
     strcpy(name1,name);
     strcpy(name2,name);
     strcpy(name3,name);
@@ -4862,10 +5119,13 @@ void continue_last_game(char name[100]){
     strcpy(name7,name);
     strcpy(name8,name);
     strcpy(name9,name);
+    strcpy(name10,name);
+    strcpy(name11,name);
     load_map(name1,&game.maps[0],1);
     load_map(name2,&game.maps[1],2);
     load_map(name3,&game.maps[2],3);
     load_map(name4,&game.maps[3],4);
+    load_map(name10,&game.maps[4],5);
     struct Player p;
     load_player(name,&p);
     if(p.win_last_game != -1){
@@ -4891,10 +5151,10 @@ void continue_last_game(char name[100]){
     if(p.win_last_game == 1){
         move(10,10);
         attron(COLOR_PAIR(2));
-        printw("Congratulations. You won!");
+        printw("Congratulations. You won!\n          total gold you get: %d\n          the score you get: %d",p.gold,p.gold * (p.game_number + 1));
         attroff(COLOR_PAIR(2));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         p.game_number += 1;
@@ -4907,8 +5167,8 @@ void continue_last_game(char name[100]){
             int gold, gold2, game_number, time_of_play;
             sscanf(line, "%s %s %s %d %d %d %d", name_x, password, email, &gold, &gold2, &game_number, &time_of_play);
             if(!strcmp(name,name_x)){
-                gold = p.gold;
-                gold2 = p.gold;
+                gold += p.gold;
+                gold2 += p.gold * p.game_number;
                 game_number = p.game_number;
                 time_of_play = p.total_game;
                 fprintf(temp, "%s %s %s %d %d %d %d\n", name_x, password, email, gold, gold2, game_number, time_of_play);
@@ -4942,10 +5202,12 @@ void continue_last_game(char name[100]){
         p.x_map2 = 0;
         p.x_map3 = 0;
         p.x_map4 = 0;
+        p.x_map5 = 0;
         p.y_map1 = 0;
         p.y_map2 = 0;
         p.y_map3 = 0;
         p.y_map4 = 0;
+        p.y_map5 = 0;
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
@@ -4955,6 +5217,7 @@ void continue_last_game(char name[100]){
         remove_file(name6,2);
         remove_file(name7,3);
         remove_file(name8,4);
+        remove_file(name11,5);
         return;
     }
     else if(p.win_last_game == 0){
@@ -4963,7 +5226,7 @@ void continue_last_game(char name[100]){
         printw("Sorry. You lost the game!");
         attroff(COLOR_PAIR(1));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         p.total_game += 1;
@@ -5007,10 +5270,12 @@ void continue_last_game(char name[100]){
         p.x_map2 = 0;
         p.x_map3 = 0;
         p.x_map4 = 0;
+        p.x_map5 = 0;
         p.y_map1 = 0;
         p.y_map2 = 0;
         p.y_map3 = 0;
         p.y_map4 = 0;
+        p.y_map5 = 0;
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
@@ -5020,6 +5285,7 @@ void continue_last_game(char name[100]){
         remove_file(name6,2);
         remove_file(name7,3);
         remove_file(name8,4);
+        remove_file(name11,5);
         return;
     }
     else if(p.win_last_game == -1){
@@ -5028,6 +5294,7 @@ void continue_last_game(char name[100]){
         save_map(name6,&game.maps[1],2);
         save_map(name7,&game.maps[2],3);
         save_map(name8,&game.maps[3],4);
+        save_map(name11,&game.maps[4],5);
         return;
     }
 }
@@ -5159,10 +5426,12 @@ void guest(){
     char name2[100] = "guest"; 
     char name3[100] = "guest"; 
     char name4[100] = "guest";
+    char name5[100] = "guest";
     generate_map(&game.maps[0],name1,1);
     generate_map(&game.maps[1],name2,2);
     generate_map(&game.maps[2],name3,3);
     generate_map(&game.maps[3],name4,4);
+    generate_map(&game.maps[4],name4,5);
     struct Player guest_player;
     guest_player.health = 1000;
     guest_player.food_number = 0;
@@ -5175,10 +5444,12 @@ void guest(){
     guest_player.x_map2 = 0;
     guest_player.x_map3 = 0;
     guest_player.x_map4 = 0;
+    guest_player.x_map5 = 0;
     guest_player.y_map1 = 0;
     guest_player.y_map2 = 0;
     guest_player.y_map3 = 0;
     guest_player.y_map4 = 0;
+    guest_player.y_map5 = 0;
     guest_player.hungry = 5;
     guest_player.game_number = 0;
     guest_player.win_last_game = 2;
@@ -5194,10 +5465,10 @@ void guest(){
     if(guest_player.win_last_game == 1){
         move(10,10);
         attron(COLOR_PAIR(2));
-        printw("Congratulations. You won!");
+        printw("Congratulations. You won!\n          gold you get: %d",guest_player.gold);
         attroff(COLOR_PAIR(2));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         return;
@@ -5208,7 +5479,7 @@ void guest(){
         printw("Sorry. You lost the game!");
         attroff(COLOR_PAIR(1));
         refresh();
-        sleep(4);
+        getch();
         clear();
         refresh();
         return;
@@ -5245,8 +5516,6 @@ int is_stair(struct Map *map,int x,int y){
     return 0;
 }
 
-void move_in_fightroom(struct Player *p){}
-
 void fightroom(struct Player *p){
     int x_1 = 25;  
     int x_2 = 25 + 20;  
@@ -5264,7 +5533,8 @@ void fightroom(struct Player *p){
         move(y_1 + j + 1, x_2);  
         printw("|");  
     }
-    mvprintw(35,35,"P");
+    mvprintw(24,26,"P");
+    mvprintw(6,44,"<");
     refresh();
     sleep(5);
     p->health -= 500;
@@ -5685,6 +5955,9 @@ void remove_file(char filename[100],int number){
     case 4:
         strcpy(perfix, "-map4.bin");
         break;
+    case 5:
+        strcpy(perfix, "-map5.bin");
+        break;
     }
     strcat(filename,perfix);
     remove(filename);
@@ -6100,7 +6373,7 @@ void move_demon(struct Map *map,struct Player *p){
         }
     }
     for(int i = 0; i < 5; i++){
-        if(map->demons[i].can_move){
+        if(map->demons[i].can_move && map->demons[i].x_demon != 0){
             int resualt_or_index_room = witch_room(map,p->x,p->y);
             if(resualt_or_index_room){
                 if(map->demons[i].number_of_room == resualt_or_index_room - 1){
@@ -6110,28 +6383,28 @@ void move_demon(struct Map *map,struct Player *p){
                                 if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
                                     print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                     map->demons[i].x_demon += 1;
-                                    return;
+                                    continue;
                                 }
                             }
                             if(map->demons[i].x_demon > p->x){
                                 if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
                                     print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                     map->demons[i].x_demon -= 1;
-                                    return;
+                                    continue;
                                 }
                             }
                             if(map->demons[i].y_demon < p->y){
                                 if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
                                     print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                     map->demons[i].y_demon += 1;
-                                    return;
+                                    continue;
                                 }
                             }
                             if(map->demons[i].y_demon > p->y){
                                 if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
                                     print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                     map->demons[i].y_demon -= 1;
-                                    return;
+                                    continue;
                                 }
                             }
                         }
@@ -6141,28 +6414,28 @@ void move_demon(struct Map *map,struct Player *p){
                             if(is_not_wall(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon + 1,map->demons[i].y_demon) && (map->demons[i].x_demon + 1 != p->x || map->demons[i].y_demon != p->y)){
                                 print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].x_demon += 1;
-                                return;
+                                continue;
                             }
                         }
                         if(map->demons[i].x_demon > p->x){
                             if(is_not_wall(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && !is_pillor(map,map->demons[i].x_demon - 1,map->demons[i].y_demon) && (map->demons[i].x_demon - 1 != p->x || map->demons[i].y_demon != p->y)){
                                 print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].x_demon -= 1;
-                                return;
+                                continue;
                             }
                         }
                         if(map->demons[i].y_demon < p->y){
                             if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon + 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon + 1 != p->y)){
                                 print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].y_demon += 1;
-                                return;
+                                continue;
                             }
                         }
                         if(map->demons[i].y_demon > p->y){
                             if(is_not_wall(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && !is_pillor(map,map->demons[i].x_demon,map->demons[i].y_demon - 1) && (map->demons[i].x_demon != p->x || map->demons[i].y_demon - 1 != p->y)){
                                 print_after_move_demon(map,map->demons[i].x_demon,map->demons[i].y_demon);
                                 map->demons[i].y_demon -= 1;
-                                return;
+                                continue;
                             }
                         }    
                     }
@@ -6192,17 +6465,17 @@ void print_after_move_demon(struct Map *map,int x, int y){
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
     init_pair(3,COLOR_YELLOW,COLOR_BLACK);
     init_pair(4,COLOR_YELLOW,COLOR_BLACK);
-    if(x == map->x_create_paasword && y == map->y_create_paasword){
+    if(map->number_of_rooms != 1 && x == map->x_create_paasword && y == map->y_create_paasword){
         move(y,x);
         printw("&");
         return;
     }
-    if(x == map->x_stair && y == map->y_stair){
+    if(map->number_of_rooms != 1 && x == map->x_stair && y == map->y_stair){
         move(y,x);
         printw("<");
         return;
     }
-    if(x == map->x_Master_Key && y == map->y_Master_Key){
+    if(map->number_of_rooms != 1 && x == map->x_Master_Key && y == map->y_Master_Key){
         move(y,x);
         attron(COLOR_PAIR(3));
         printw("%s",r);
@@ -6211,7 +6484,7 @@ void print_after_move_demon(struct Map *map,int x, int y){
         return;
     }
     for(int j = 0; j < 3; j++){
-        if(x == map->foods[j].x_food && y == map->foods[j].y_food){
+        if(map->number_of_rooms != 1 && x == map->foods[j].x_food && y == map->foods[j].y_food){
             move(map->foods[j].y_food,map->foods[j].x_food);
             if(map->foods[j].type == 1){
                 printw("%s",l);
@@ -6232,7 +6505,7 @@ void print_after_move_demon(struct Map *map,int x, int y){
         }
     }
     for(int j = 0; j < 3; j++){
-        if(x == map->spells[j].x_spell && y == map->spells[j].y_spell){
+        if(map->number_of_rooms != 1 && x == map->spells[j].x_spell && y == map->spells[j].y_spell){
             move(map->spells[j].y_spell,map->spells[j].x_spell);
             if(map->spells[j].type == 1){
                 printw("%s",f);
@@ -6249,7 +6522,7 @@ void print_after_move_demon(struct Map *map,int x, int y){
         }
     }
     for(int j = 0; j < 3; j++){
-        if(x == map->wepons[j].x_wepon && y == map->spells[j].y_spell){
+        if(map->number_of_rooms != 1 && x == map->wepons[j].x_wepon && y == map->spells[j].y_spell){
             move(map->wepons[j].y_wepon,map->wepons[j].x_wepon);
             if(map->wepons[j].type == 1){
                 printw("%s",a);
@@ -7263,5 +7536,19 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             return;
         }
     }
+}
+
+int is_win(struct Map *map){
+    for(int i = 0; i < 3; i++){
+        if(map->golds[i].x_gold != 0){
+            return 0;
+        }
+    }
+    for(int i = 0; i < 5; i++){
+        if(map->demons[i].x_demon != 0){
+            return 0;
+        }
+    }
+    return 1;
 }
 
