@@ -1244,7 +1244,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         time_t time_end;
         time(&time_end);
         time(&end);
-        if(time_end - p->priod >= 30){
+        if(time_end - p->priod >= 60){
             if(p->hungry >= 1){
                 p->hungry -= 1;
                 time(&p->priod);
@@ -2708,17 +2708,15 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
         }
         if(c == 'A'){
-            if(last_throw){
-                if(!p->type_wepon_chosen){
-                    if(p->type_wepon_chosen == 2){
-                        throw_wepon(2,map,p,1);
-                    }
-                    if(p->type_wepon_chosen == 3){
-                        throw_wepon(3,map,p,1);
-                    }
-                    if(p->type_wepon_chosen == 4){
-                        throw_wepon(4,map,p,1);
-                    }
+            if(last_throw != 0){
+                if(p->type_wepon_chosen == 2){
+                    throw_wepon(2,map,p,1);
+                }
+                if(p->type_wepon_chosen == 3){
+                    throw_wepon(3,map,p,1);
+                }
+                if(p->type_wepon_chosen == 4){
+                    throw_wepon(4,map,p,1);
                 }
             }
         }
@@ -6225,9 +6223,11 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
         damage = 5;
         range = 5;
     }
-    int c2 = getch();
+    int c2;
     if(is_repeat){
         c2 = last_throw;
+    }else{
+        c2 = getch();
     }
     if(c2 == 'w'){
         last_throw = 'w';
