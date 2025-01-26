@@ -22,6 +22,7 @@ time_t damage;
 int first_damage = 0;
 int coefficient_health = 1;
 int coefficient_damage = 1;
+int coefficient_speed = 1;
 const char* b = "🗱";//خنجر
 const char* a = "⚒️";//گرز
 const char* c = "🪄";//عصای جادویی
@@ -1245,6 +1246,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         if(p->total_step >= 10){
             coefficient_health = 1;
             coefficient_damage = 1;
+            coefficient_speed = 1;
             p->total_step = 0;
         }
         if(p->health <= 0){
@@ -2136,6 +2138,16 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             for(int j = 0; j < p->spell_number; j++){
                 if(p->spells[j].type == 3 && p->spells[j].is_exist){
                     coefficient_damage = 2;
+                    p->spells[j].is_exist = 0;
+                    p->total_step = 0;
+                    break;
+                }
+            }
+        }
+        if(c == 'y'){
+            for(int j = 0; j < p->spell_number; j++){
+                if(p->spells[j].type == 2 && p->spells[j].is_exist){
+                    coefficient_speed = 2;
                     p->spells[j].is_exist = 0;
                     p->total_step = 0;
                     break;
@@ -3191,29 +3203,29 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
     start_color();
     init_pair(1,COLOR_RED,COLOR_BLACK);
     init_pair(2,COLOR_GREEN,COLOR_BLACK);
-    if(is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y) && !is_demon(map,p->x + second_x,p->y + second_y)){
-        if(is_food(map,p->x + second_x,p->y + second_y)){
-            move_effect("food",p,map,p->x + second_x,p->y + second_y);
+    if(is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_pillor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_demon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(is_food(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("food",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_trap(map,p->x + second_x,p->y + second_y)){
-            move_effect("trap",p,map,p->x + second_x,p->y + second_y);
+        if(is_trap(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("trap",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_spell(map,p->x + second_x,p->y + second_y)){
-            move_effect("spell",p,map,p->x + second_x,p->y + second_y);
+        if(is_spell(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("spell",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_wepon(map,p->x + second_x,p->y + second_y)){
-            move_effect("wepon",p,map,p->x + second_x,p->y + second_y);
+        if(is_wepon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("wepon",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_wepon_use(map,p->x + second_x,p->y + second_y)){
-            move_effect("wepon_use",p,map,p->x + second_x,p->y + second_y);
+        if(is_wepon_use(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("wepon_use",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_gold(map,p->x + second_x,p->y + second_y)){
-            move_effect("gold",p,map,p->x + second_x,p->y + second_y);
+        if(is_gold(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("gold",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_master_key(map,p->x + second_x,p->y + second_y)){
-            move_effect("master",p,map,p->x + second_x,p->y + second_y);
+        if(is_master_key(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("master",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_fight_room(map,p->x + second_x,p->y + second_y)){
+        if(is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             if(p->last_map == 1){
                 p->x_map1 = p->x;
                 p->y_map1 = p->y;
@@ -3230,9 +3242,9 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                 p->x_map4 = p->x;
                 p->y_map4 = p->y;
             }
-            move_effect("fight",p,map,p->x + second_x,p->y + second_y);
+            move_effect("fight",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_create_password(map,p->x + second_x,p->y + second_y) && (map->x_password_door != 0 && map->y_password_door != 0)){
+        if(is_create_password(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && (map->x_password_door != 0 && map->y_password_door != 0)){
             create_password(map,time_start);
         }
         if(is_trap(map,p->x,p->y)){
@@ -3268,18 +3280,18 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             mvprintw(p->y,p->x," ");
             refresh();
         }
-        p->y += second_y;
-        p->x += second_x;
+        p->y += second_y * coefficient_speed;
+        p->x += second_x * coefficient_speed;
         mvprintw(p->y,p->x,"P");
         p->step += 1;
         refresh();
-    }if(!is_not_wall(map,p->x + second_x,p->y + second_y)){
-        if(is_corridor(map,p->x + second_x,p->y + second_y)){
+    }if(!is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(is_corridor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             if(is_corridor(map,p->x,p->y)){
                 mvprintw(p->y,p->x,"#");
                 refresh();
-                p->y += second_y;
-                p->x += second_x;
+                p->y += second_y * coefficient_speed;
+                p->x += second_x * coefficient_speed;
                 p->step = 0;
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -3287,8 +3299,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             else if(is_door(map,p->x,p->y) && !is_password_door(map,p->x,p->y) && !is_secret_door(map,p->x,p->y)){
                 mvprintw(p->y,p->x,"+");
                 refresh();
-                p->y += second_y;
-                p->x += second_x;
+                p->y += second_y * coefficient_speed;
+                p->x += second_x * coefficient_speed;
                 p->step = 0;
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -3296,8 +3308,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             else if(is_secret_door(map,p->x,p->y)){
                 mvprintw(p->y,p->x,"?");
                 refresh();
-                p->y += second_y;
-                p->x += second_x;
+                p->y += second_y * coefficient_speed;
+                p->x += second_x * coefficient_speed;
                 p->step = 0;
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -3308,8 +3320,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                     mvprintw(p->y,p->x,"@");
                     attroff(COLOR_PAIR(2));
                     refresh();
-                    p->y += second_y;
-                    p->x += second_x;
+                    p->y += second_y * coefficient_speed;
+                    p->x += second_x * coefficient_speed;
                     p->step = 0;
                     mvprintw(p->y,p->x,"P");
                     refresh();
@@ -3318,16 +3330,16 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                     mvprintw(p->y,p->x,"@");
                     attroff(COLOR_PAIR(1));
                     refresh();
-                    p->y += second_y;
-                    p->x += second_x;
+                    p->y += second_y * coefficient_speed;
+                    p->x += second_x * coefficient_speed;
                     p->step = 0;
                     mvprintw(p->y,p->x,"P");
                     refresh();
                 }
             }
         }
-        if(is_door(map,p->x + second_x,p->y + second_y)){
-            if(is_password_door(map,p->x + second_x,p->y + second_y) && (map->x_create_paasword != 0 && map->y_password_door != 0)){
+        if(is_door(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            if(is_password_door(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && (map->x_create_paasword != 0 && map->y_password_door != 0)){
                 if(p->last_map == 1){
                     p->x_map1 = p->x;
                     p->y_map1 = p->y;
@@ -3351,8 +3363,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                     if(is_corridor(map,p->x,p->y)){
                         mvprintw(p->y,p->x,"#");
                         refresh();
-                        p->y += second_y;
-                        p->x += second_x;
+                        p->y += second_y * coefficient_speed;
+                        p->x += second_x * coefficient_speed;
                         p->step = 0;
                         mvprintw(p->y,p->x,"P");
                         refresh();
@@ -3361,8 +3373,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
                         mvprintw(p->y,p->x,"@");
                         attroff(COLOR_PAIR(2));
                         refresh();
-                        p->y += second_y;
-                        p->x += second_x;
+                        p->y += second_y * coefficient_speed;
+                        p->x += second_x * coefficient_speed;
                         p->step = 0;
                         mvprintw(p->y,p->x,"P");
                         refresh();
@@ -3372,8 +3384,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             if(is_corridor(map,p->x,p->y)){
                 mvprintw(p->y,p->x,"#");
                 refresh();
-                p->y += second_y;
-                p->x += second_x;
+                p->y += second_y * coefficient_speed;
+                p->x += second_x * coefficient_speed;
                 p->step = 0;
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -3381,8 +3393,8 @@ void regular_move(struct Player *p,struct Map *map,int second_x,int second_y,tim
             else{
                 mvprintw(p->y,p->x," ");
                 refresh();
-                p->y += second_y;
-                p->x += second_x;
+                p->y += second_y * coefficient_speed;
+                p->x += second_x * coefficient_speed;
                 p->step = 0;
                 mvprintw(p->y,p->x,"P");
                 refresh();
@@ -3486,15 +3498,15 @@ void f_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
 }
 
 void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t time_start){
-    if(is_not_wall(map,p->x + second_x,p->y + second_y) && !is_pillor(map,p->x + second_x,p->y + second_y) && !is_demon(map,p->x + second_x,p->y + second_y)){
-        if(is_trap(map,p->x + second_x,p->y + second_y)){
-            move_effect("trap",p,map,p->x + second_x,p->y + second_y);
+    if(is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_pillor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed) && !is_demon(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(is_trap(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("trap",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_fight_room(map,p->x + second_x,p->y + second_y)){
-            move_effect("fight",p,map,p->x + second_x,p->y + second_y);
+        if(is_fight_room(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("fight",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
-        if(is_gold(map,p->x + second_x,p->y + second_y)){
-            move_effect("gold",p,map,p->x + second_x,p->y + second_y);
+        if(is_gold(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+            move_effect("gold",p,map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed);
         }
         if(is_trap(map,p->x,p->y)){
             mvprintw(p->y,p->x,"^");
@@ -3504,26 +3516,26 @@ void g_move(struct Player *p,struct Map *map,int second_x,int second_y,time_t ti
             mvprintw(p->y,p->x," ");
             refresh();
         }
-        p->y += second_y;
-        p->x += second_x;
+        p->y += second_y * coefficient_speed;
+        p->x += second_x * coefficient_speed;
         p->step += 1;
         mvprintw(p->y,p->x,"P");
         refresh();
-    }if(!is_not_wall(map,p->x + second_x,p->y + second_y)){
-        if(is_corridor(map,p->x + second_x,p->y + second_y)){
+    }if(!is_not_wall(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
+        if(is_corridor(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             mvprintw(p->y,p->x,"#");
             refresh();
-            p->y += second_y;
-            p->x += second_x;
+            p->y += second_y * coefficient_speed;
+            p->x += second_x * coefficient_speed;
             p->step = 0;
             mvprintw(p->y,p->x,"P");
             refresh();
         }
-        if(is_door(map,p->x + second_x,p->y + second_y)){
+        if(is_door(map,p->x + second_x * coefficient_speed,p->y + second_y * coefficient_speed)){
             mvprintw(p->y,p->x," ");
             refresh();
-            p->y += second_y;
-            p->x += second_x;
+            p->y += second_y * coefficient_speed;
+            p->x += second_x * coefficient_speed;
             p->step = 0;
             mvprintw(p->y,p->x,"P");
             refresh();
