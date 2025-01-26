@@ -18,6 +18,10 @@ int last_throw = 0;
 int game_over = 0;
 time_t start;
 time_t end;
+time_t damage;
+int first_damage = 0;
+int coefficient_health = 1;
+int coefficient_damage = 1;
 const char* b = "🗱";//خنجر
 const char* a = "⚒️";//گرز
 const char* c = "🪄";//عصای جادویی
@@ -49,6 +53,7 @@ struct Spell{
     int y_spell;
     int number_room;
     int type;//1-3
+    int is_exist;
 };
 #pragma pack()
 #pragma pack(1)
@@ -103,6 +108,7 @@ struct Player{
     int level;
     int step;
     int type_wepon_chosen;
+    int total_step;
 };
 #pragma pack()
 #pragma pack(1)
@@ -1236,6 +1242,11 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
             refresh();
         }
+        if(p->total_step >= 10){
+            coefficient_health = 1;
+            coefficient_damage = 1;
+            p->total_step = 0;
+        }
         if(p->health <= 0){
             p->win_last_game = 0;
             game_over = 1;
@@ -1255,6 +1266,13 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             time(&p->priod);
         }
+        if(end - damage >= 10 && p->hungry >= 5 && first_damage){
+            p->health += 3 * coefficient_health;
+            move(0,0);
+            clrtoeol();
+            printw("Helth: %d  Hunger: %d  Gold: %d",p->health,p->hungry,p->gold);
+            refresh();
+        }
         if(time_end - time_start >= 10){
             move(0,60);
             clrtoeol();
@@ -1268,6 +1286,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         int c = getch();
         if(c == 'w'){
+            p->total_step += 1;
             regular_move(p,map,0,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1287,6 +1306,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'x'){
+            p->total_step += 1;
             regular_move(p,map,0,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1306,6 +1326,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'a'){
+            p->total_step += 1;
             regular_move(p,map,-1,0,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1325,6 +1346,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'd'){
+            p->total_step += 1;
             regular_move(p,map,1,0,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1344,6 +1366,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'e'){
+            p->total_step += 1;
             regular_move(p,map,1,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1363,6 +1386,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'q'){
+            p->total_step += 1;
             regular_move(p,map,-1,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1382,6 +1406,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'c'){
+            p->total_step += 1;
             regular_move(p,map,1,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1401,6 +1426,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'z'){
+            p->total_step += 1;
             regular_move(p,map,-1,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1420,6 +1446,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             refresh();
         }
         if(c == 'f'){
+            p->total_step += 1;
             int c2 = getch();
             if(c2 == 'w'){
                 f_move(p,map,0,-1,time_start);
@@ -1441,6 +1468,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'x'){
+                p->total_step += 1;
                 f_move(p,map,0,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1460,6 +1488,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'd'){
+                p->total_step += 1;
                 f_move(p,map,1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1479,6 +1508,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'a'){
+                p->total_step += 1;
                 f_move(p,map,-1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1498,6 +1528,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'e'){
+                p->total_step += 1;
                 f_move(p,map,1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1517,6 +1548,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'q'){
+                p->total_step += 1;
                 f_move(p,map,-1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1536,6 +1568,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'c'){
+                p->total_step += 1;
                 f_move(p,map,1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1555,6 +1588,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'z'){
+                p->total_step += 1;
                 f_move(p,map,-1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1577,6 +1611,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         if(c == 'g'){
             int c2 = getch();
             if(c2 == 'w'){
+                p->total_step += 1;
                 g_move(p,map,0,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1596,6 +1631,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'x'){
+                p->total_step += 1;
                 g_move(p,map,0,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1615,6 +1651,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'a'){
+                p->total_step += 1;
                 g_move(p,map,-1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1634,6 +1671,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'd'){
+                p->total_step += 1;
                 g_move(p,map,1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1653,6 +1691,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'e'){
+                p->total_step += 1;
                 g_move(p,map,1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1672,6 +1711,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'q'){
+                p->total_step += 1;
                 g_move(p,map,-1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1691,6 +1731,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'c'){
+                p->total_step += 1;
                 g_move(p,map,1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1710,6 +1751,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                 refresh();
             }
             if(c2 == 'z'){
+                p->total_step += 1;
                 g_move(p,map,-1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -2080,6 +2122,26 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             move_player(map,p,p->last_map);
             return;
         }
+        if(c == 'r'){
+            for(int j = 0; j < p->spell_number; j++){
+                if(p->spells[j].type == 1 && p->spells[j].is_exist){
+                    coefficient_health = 2;
+                    p->spells[j].is_exist = 0;
+                    p->total_step = 0;
+                    break;
+                }
+            }
+        }
+        if(c == 'p'){
+            for(int j = 0; j < p->spell_number; j++){
+                if(p->spells[j].type == 3 && p->spells[j].is_exist){
+                    coefficient_damage = 2;
+                    p->spells[j].is_exist = 0;
+                    p->total_step = 0;
+                    break;
+                }
+            }
+        }
         if(c == 'o'){
             for(int j = 0; j < p->food_number; j++){
                 if(p->foods[j].type == 1){
@@ -2301,10 +2363,12 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
         }
         if(c == 32){
+            int dam;
             if(p->type_wepon_chosen == 1){
                 for(int j = 0; j < 5; j++){
                     if(p->x + 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2318,7 +2382,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2328,7 +2392,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x + 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2342,7 +2407,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2352,7 +2417,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x + 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2366,7 +2432,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2376,7 +2442,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2390,7 +2457,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2400,7 +2467,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2414,7 +2482,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2424,7 +2492,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2438,7 +2507,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2448,7 +2517,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2462,7 +2532,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2472,7 +2542,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 5;
+                        dam = 5 * coefficient_damage;
+                        map->demons[j].healt -= 5 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2486,7 +2557,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 5");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2502,7 +2573,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             if(p->type_wepon_chosen == 5){
                 for(int j = 0; j < 5; j++){
                     if(p->x + 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2516,7 +2588,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2526,7 +2598,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x + 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2540,7 +2613,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2550,7 +2623,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x + 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2564,7 +2638,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2574,7 +2648,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2588,7 +2663,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2598,7 +2673,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2612,7 +2688,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2622,7 +2698,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2636,7 +2713,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2646,7 +2723,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y - 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2660,7 +2738,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2670,7 +2748,8 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                         continue;
                     }
                     if(p->x - 1 == map->demons[j].x_demon && p->y + 1 == map->demons[j].y_demon){
-                        map->demons[j].healt -= 10;
+                        dam = 10 * coefficient_damage;
+                        map->demons[j].healt -= 10 * coefficient_damage;
                         if(map->demons[j].healt <= 0){
                             move(1,0);
                             printw("You kill the demon!");
@@ -2684,7 +2763,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
                             map->demons[j].y_demon = 0;
                         }else{
                             move(1,0);
-                            printw("You damage the demon 10");
+                            printw("You damage the demon %d",dam);
                             refresh();
                             sleep(1);
                             move(1,0);
@@ -2786,6 +2865,7 @@ void move_effect(const char* state,struct Player *p,struct Map* map,int x,int y)
     }
     else if(!strcmp(state,"spell")){
         p->spells[p->spell_number].type = map->spells[index_spell(map,x,y)].type;
+        p->spells[p->spell_number].is_exist = 1;
         f_spell(map,x,y);
         move(1,0);
         printw("You got a spell!");
@@ -4007,6 +4087,7 @@ void create_new_player() {
     p.color = 0;
     p.step = 0;
     p.type_wepon_chosen = 1;
+    p.total_step = 0;
     time(&p.begin_game);
     save_player(name,&p);
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
@@ -4596,6 +4677,7 @@ void create_new_game(char name[100]){
     p.last_map = 1;
     p.step = 0;
     p.type_wepon_chosen = 1;
+    p.total_step = 0;
     time(&p.priod);
     p.win_last_game = 2;
     move_player(&game.maps[0],&p,1);
@@ -4663,6 +4745,7 @@ void create_new_game(char name[100]){
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
+        p.total_step = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4727,6 +4810,7 @@ void create_new_game(char name[100]){
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
+        p.total_step = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4853,6 +4937,7 @@ void continue_last_game(char name[100]){
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
+        p.total_step = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -4917,6 +5002,7 @@ void continue_last_game(char name[100]){
         p.hungry = 5;
         p.step = 0;
         p.type_wepon_chosen = 1;
+        p.total_step = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -5215,22 +5301,22 @@ void show_wepons(struct Player *p){
 void show_spells(struct Player *p){
     int type1 = 0,type2 = 0,type3 = 0;
     for(int i = 0; i < p->spell_number; i++){
-        if(p->spells[i].type == 1){
+        if(p->spells[i].type == 1 && p->spells[i].is_exist){
             type1 += 1;
         }
-        if(p->spells[i].type == 2){
+        if(p->spells[i].type == 2 && p->spells[i].is_exist){
             type2 += 1;
         }
-        if(p->spells[i].type == 3){
+        if(p->spells[i].type == 3 && p->spells[i].is_exist){
             type3 += 1;
         }
     }
     move(8,20);
-    printw("%d   %s",type1,f);
+    printw("%s  -count:  %d  -key; r  -Health",f,type1);
     move(9,20);
-    printw("%d   %s",type2,g);
+    printw("%s  -count:  %d  -key; y  -Speed",g,type2);
     move(10,20);
-    printw("%d   %s",type3,h);
+    printw("%s  -count:  %d  -key; p  -Damage",h,type3);
     refresh();
     getch();
     clear();
@@ -5785,20 +5871,26 @@ int is_demon(struct Map *map,int x, int y){
 void move_demon(struct Map *map,struct Player *p){
     for(int i = 0; i < 5; i++){
         if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5806,20 +5898,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon - 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5827,20 +5925,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon + 1 == p->x && map->demons[i].y_demon + 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5848,20 +5952,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon == p->x && map->demons[i].y_demon - 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5869,20 +5979,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon == p->x && map->demons[i].y_demon + 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5890,20 +6006,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon - 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5911,20 +6033,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -5932,20 +6060,26 @@ void move_demon(struct Map *map,struct Player *p){
             refresh();
         }
         else if(map->demons[i].x_demon - 1 == p->x && map->demons[i].y_demon + 1 == p->y){
+            first_damage = 1;
             if(map->demons[i].type == 1){
                 p->health -= 10;
+                time(&damage);
             }
             if(map->demons[i].type == 2){
                 p->health -= 20;
+                time(&damage);
             }
             if(map->demons[i].type == 3){
                 p->health -= 30;
+                time(&damage);
             }
             if(map->demons[i].type == 4){
                 p->health -= 40;
+                time(&damage);
             }
             if(map->demons[i].type == 5){
                 p->health -= 50;
+                time(&damage);
             }
             move(0,0);
             clrtoeol();
@@ -6290,7 +6424,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6401,7 +6535,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].healt -= damage;
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6512,7 +6646,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x,p->y + distance_available + 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6623,7 +6757,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].healt -= damage;
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6734,7 +6868,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y - distance_available - 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6845,7 +6979,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y - distance_available - 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -6956,7 +7090,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x + distance_available + 1,p->y + distance_available + 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
@@ -7067,7 +7201,7 @@ void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat){
             if(type == 3){
                 map->demons[witch_demon(map,p->x,p->y - distance_available - 1)].can_move = 0;
             }
-            map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].healt -= damage;
+            map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].healt -= damage * coefficient_damage;
             if(map->demons[witch_demon(map,p->x - distance_available - 1,p->y + distance_available + 1)].healt <= 0){
                 move(1,0);
                 printw("the wepon hit to %s and damage %d and kill it",name_of_demon(type),damage);
