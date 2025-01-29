@@ -112,6 +112,7 @@ struct Player{
     int step;
     int type_wepon_chosen;
     int total_step;
+    int total_step_food;
 };
 #pragma pack()
 #pragma pack(1)
@@ -298,6 +299,8 @@ int index_wepon_use(struct Map *map,int x, int y);
 void f_wepon_use(struct Map *map,int x, int y);
 void throw_wepon(int type,struct Map *map,struct Player *p,int is_repeat);
 int is_win(struct Map *map);
+void chose_color(struct Player *p);
+void chose_level(struct Player *p);
 
 int main(){
     setlocale(LC_CTYPE, "");
@@ -1350,6 +1353,11 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             coefficient_speed = 1;
             p->total_step = 0;
         }
+        if(p->total_step_food >= 20){
+            coefficient_damage = 1;
+            coefficient_speed = 1;
+            p->total_step_food = 0;
+        }
         if(p->health <= 0){
             p->win_last_game = 0;
             game_over = 1;
@@ -1390,6 +1398,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         int c = getch();
         if(c == 'w'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,0,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1410,6 +1419,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'x'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,0,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1430,6 +1440,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'a'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,-1,0,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1450,6 +1461,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'd'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,1,0,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1470,6 +1482,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'e'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,1,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1490,6 +1503,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'q'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,-1,-1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1510,6 +1524,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'c'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,1,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1530,6 +1545,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'z'){
             p->total_step += 1;
+            p->total_step_food += 1;
             regular_move(p,map,-1,1,time_start);
             move_demon(map,p);
             print(map,p->x,p->y,p);
@@ -1550,6 +1566,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
         }
         if(c == 'f'){
             p->total_step += 1;
+            p->total_step_food += 1;
             int c2 = getch();
             if(c2 == 'w'){
                 f_move(p,map,0,-1,time_start);
@@ -1572,6 +1589,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'x'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,0,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1592,6 +1610,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'd'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1612,6 +1631,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'a'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,-1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1632,6 +1652,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'e'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1652,6 +1673,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'q'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,-1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1672,6 +1694,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'c'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1692,6 +1715,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'z'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 f_move(p,map,-1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1715,6 +1739,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             int c2 = getch();
             if(c2 == 'w'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,0,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1735,6 +1760,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'x'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,0,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1755,6 +1781,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'a'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,-1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1775,6 +1802,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'd'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,1,0,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1795,6 +1823,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'e'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1815,6 +1844,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'q'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,-1,-1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1835,6 +1865,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'c'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -1855,6 +1886,7 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
             if(c2 == 'z'){
                 p->total_step += 1;
+                p->total_step_food += 1;
                 g_move(p,map,-1,1,time_start);
                 move_demon(map,p);
                 print(map,p->x,p->y,p);
@@ -2290,12 +2322,59 @@ void move_player(struct Map *map,struct Player *p,int number_map){
             }
         }
         if(c == 'o'){
-            for(int j = 0; j < p->food_number; j++){
+            for(int j = p->food_number - 1; j >= 0; j--){
                 if(p->foods[j].type == 1){
                     p->hungry += 1;
                     p->health += 200;
                     p->foods[j].type = 0;
                     p->food_number -= 1;
+                    move(0,0);
+                    clrtoeol();
+                    printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
+                    break;
+                }
+                else if(p->foods[j].type == 4){
+                    p->health -= 200;
+                    p->foods[j].type = 0;
+                    p->food_number -= 1;
+                    move(1,0);
+                    printw("it was a poison food!");
+                    refresh();
+                    sleep(1);
+                    move(1,0);
+                    clrtoeol();
+                    move(0,0);
+                    clrtoeol();
+                    printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
+                    break;
+                }
+            }
+        }
+        if(c == 'u'){
+            for(int j = p->food_number - 1; j >= 0; j--){
+                if(p->foods[j].type == 2){
+                    p->hungry += 1;
+                    p->health += 200;
+                    p->foods[j].type = 0;
+                    p->food_number -= 1;
+                    coefficient_damage = 2;
+                    p->total_step_food = 0;
+                    move(0,0);
+                    clrtoeol();
+                    printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
+                    break;
+                }
+            }
+        }
+        if(c == 'b'){
+            for(int j = p->food_number - 1; j >= 0; j--){
+                if(p->foods[j].type == 3){
+                    p->hungry += 1;
+                    p->health += 200;
+                    p->foods[j].type = 0;
+                    p->food_number -= 1;
+                    coefficient_speed = 2;
+                    p->total_step_food = 0;
                     move(0,0);
                     clrtoeol();
                     printw("Helth: %d  Hunger: %d Gold: %d",p->health,p->hungry,p->gold);
@@ -3233,112 +3312,156 @@ int is_create_password(struct Map *map,int x,int y){
 int panel(struct Player* p, struct Map *map) {
     clear();
     refresh();
+    const char *choices[3] = {
+        "Use Master Key",
+        "Enter the password",
+        "Exit"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
     start_color();
-    init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(2, COLOR_RED, COLOR_BLACK);
-    move(5, 20);
-    printw("make your chice:");
-    move(6, 20);
-    printw("t.Use Mater Key  y.Enter last password  u.Exit");
-    int choice;
-    choice = getch();
-    if (choice == 't') {
-        if (p->have_master_key) {
-            clear();
-            refresh();
-            p->have_master_key = 0;
-            map->x_password_door = 0;
-            map->y_password_door = 0;
-            int random = rand() % 10 + 1;//1-10
-            if(random == 1){
-                return 0;
-            }
-            return 1;
-        } else {
-            move(7, 20);
-            printw("You don't have master key");
-            sleep(3);
-            clear();
-            refresh();
-            return 0;
-        }
-    }
-    if (choice == 'y') {
-        move(7, 20);
-        printw("Enter The password");
-        move(8, 20);
-        int password;
-        nocbreak();
-        echo();
-        scanw("%d", &password);
-        int random = rand() % 5 + 1;//1-5
-        if(random == 1){ // رمز معکوس
-            int temp = map->last_password;
-            int digit1 = temp % 10;
-            temp /= 10;
-            int digit2 = temp % 10;
-            temp /= 10;
-            int digit3 = temp % 10;
-            temp /= 10;
-            int digit4 = temp % 10;
-            map->last_password = digit1 * 1000 + digit2 * 100 + digit3 * 10 + digit4;
-        }
-        if(random == 2){//رمز متغیر
-            map->last_password = rand() % (9999 - 1000 + 1) + 1000;
-        }
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    init_pair(3, COLOR_YELLOW, COLOR_BLACK);
+    init_pair(4, COLOR_RED, COLOR_BLACK);
+    WINDOW *menu = newwin(5,40,4,4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
         for (int i = 0; i < 3; i++) {
-            if (map->last_password == password) {
-                clear();
-                refresh();
-                cbreak();
-                noecho();
-                map->x_password_door = 0;
-                map->y_password_door = 0;
-                return 1;
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
             } else {
-                if (i == 0) {
-                    attron(COLOR_PAIR(1));  // Set color pair to yellow
-                    mvprintw(9, 50, "Wrong password!");
-                    attroff(COLOR_PAIR(1)); // Turn off yellow color
-                    refresh();
-                    sleep(3);
-                    move(9, 50);
-                    clrtoeol();
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+				if(current_item == 0){
+					current_item = 3 - 1;
+				}else{
+					current_item -= 1;
+				}
+                break;
+            case KEY_DOWN:
+				if(current_item == 0 || current_item == 1){
+					current_item += 1;
+				}else{
+					current_item = 0;
+				}
+                break;
+            case 10:
+                refresh();
+				clear();
+				nocbreak();
+    			echo();
+    			curs_set(1);
+				if(current_item == 0){
+					if (p->have_master_key) {
+                        clear();
+                        refresh();
+                        p->have_master_key = 0;
+                        map->x_password_door = 0;
+                        map->y_password_door = 0;
+                        int random = rand() % 10 + 1;//1-10
+                        if(random == 1){
+                            return 0;
+                        }
+                        return 1;
+                    }else{
+                        clear();
+					    refresh();
+                        return 0;
+                    }
+				}
+				if(current_item == 1){
+					clear();
+					refresh();
+                    move(7, 20);
+                    printw("Enter The password");
                     refresh();
                     move(8, 20);
+                    int password;
+                    nocbreak();
+                    echo();
                     scanw("%d", &password);
-                }
-                if (i == 1) {
-                    attron(COLOR_PAIR(2));  // Set color pair to red
-                    mvprintw(9, 50, "Wrong password!");
-                    attroff(COLOR_PAIR(2)); // Turn off red color
-                    refresh();
-                    sleep(3);
-                    move(9, 50);
-                    clrtoeol();
-                    refresh();
-                    move(8, 20);
-                    scanw("%d", &password);
-                }
-                if (i == 2) {
+                    int random = rand() % 5 + 1;//1-5
+                    if(random == 1){ // رمز معکوس
+                        int temp = map->last_password;
+                        int digit1 = temp % 10;
+                        temp /= 10;
+                        int digit2 = temp % 10;
+                        temp /= 10;
+                        int digit3 = temp % 10;
+                        temp /= 10;
+                        int digit4 = temp % 10;
+                        map->last_password = digit1 * 1000 + digit2 * 100 + digit3 * 10 + digit4;
+                    }
+                    if(random == 2){//رمز متغیر
+                        map->last_password = rand() % (9999 - 1000 + 1) + 1000;
+                    }
+                    for (int i = 0; i < 3; i++) {
+                        if (map->last_password == password) {
+                            clear();
+                            refresh();
+                            cbreak();
+                            noecho();
+                            map->x_password_door = 0;
+                            map->y_password_door = 0;
+                            return 1;
+                        } else {
+                            clear();
+                            refresh();
+                            if (i == 0) {
+                                attron(COLOR_PAIR(3));  // Set color pair to yellow
+                                mvprintw(9, 50, "Wrong password!");
+                                attroff(COLOR_PAIR(3)); // Turn off yellow color
+                                refresh();
+                                sleep(3);
+                                move(7, 20);
+                                printw("Enter The again password!");
+                                refresh();
+                                move(8, 20);
+                                scanw("%d", &password);
+                            }
+                            if (i == 1) {
+                                attron(COLOR_PAIR(4));  // Set color pair to red
+                                mvprintw(9, 50, "Wrong password!");
+                                attroff(COLOR_PAIR(4)); // Turn off red color
+                                refresh();
+                                sleep(3);
+                                move(7, 20);
+                                printw("Enter The again password!");
+                                refresh();
+                                move(8, 20);
+                                scanw("%d", &password);
+                            }
+                            if (i == 2) {
+                                clear();
+                                refresh();
+                                cbreak();
+                                noecho();
+                                return 0;
+                            }
+                        }
+                    }
+				}
+                if(current_item == 2){
                     clear();
-                    refresh();
-                    cbreak();
-                    noecho();
+					refresh();
                     return 0;
                 }
-            }
+        
         }
     }
-
-    if (choice == 'u') {
-        clear();
-        refresh();
-        return 0;
-    }
-    clear();
-    refresh();
-    return 0;
 }
 
 void create_password(struct Map *map,time_t time_start){
@@ -3962,7 +4085,7 @@ void print_room(struct Map *map,struct Player *p){
                 for(int j = 0; j < 3; j++){
                     if(map->foods[j].number_room == i && (map->foods[j].x_food != 0)){
                         move(map->foods[j].y_food,map->foods[j].x_food);
-                        if(map->foods[j].type == 1){
+                        if(map->foods[j].type == 1 || map->foods[j].type == 4){
                             printw("%s",l);
                         }
                         if(map->foods[j].type == 2){
@@ -3970,9 +4093,6 @@ void print_room(struct Map *map,struct Player *p){
                         }
                         if(map->foods[j].type == 3){
                             printw("%s",u);
-                        }
-                        if(map->foods[j].type == 4){
-                            printw("%s",n);
                         }
                     }
                 }
@@ -4335,6 +4455,7 @@ void create_new_player() {
     p.step = 0;
     p.type_wepon_chosen = 1;
     p.total_step = 0;
+    p.total_step_food = 0;
     time(&p.begin_game);
     save_player(name,&p);
 	fprintf(players,"%s %s %s %d %d %d %d\n",name,password,email,p.gold,p.gold,p.game_number,0);
@@ -4680,7 +4801,7 @@ void table_of_players(char name[100]) {
                 printw("->");
             }
             move(6 + i,14);
-            printw("|%-6d|%-20s|%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
+            printw("|%-6d|%-20s  |%-7d|%-6d|%-7d|%-5d|", users[i].rank, users[i].name_, users[i].score, users[i].gold, users[i].number_of_game, users[i].time);
         }
     }
 	move(6 + size_users,14);
@@ -4938,6 +5059,7 @@ void create_new_game(char name[100]){
     p.step = 0;
     p.type_wepon_chosen = 1;
     p.total_step = 0;
+    p.total_step_food = 0;
     time(&p.priod);
     p.win_last_game = 2;
     move_player(&game.maps[0],&p,1);
@@ -5008,6 +5130,7 @@ void create_new_game(char name[100]){
         p.step = 0;
         p.type_wepon_chosen = 1;
         p.total_step = 0;
+        p.total_step_food = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -5076,6 +5199,7 @@ void create_new_game(char name[100]){
         p.step = 0;
         p.type_wepon_chosen = 1;
         p.total_step = 0;
+        p.total_step_food = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -5212,6 +5336,7 @@ void continue_last_game(char name[100]){
         p.step = 0;
         p.type_wepon_chosen = 1;
         p.total_step = 0;
+        p.total_step_food = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -5280,6 +5405,7 @@ void continue_last_game(char name[100]){
         p.step = 0;
         p.type_wepon_chosen = 1;
         p.total_step = 0;
+        p.total_step_food = 0;
         save_player(name,&p);
         remove_file(name5,1);
         remove_file(name6,2);
@@ -5351,35 +5477,12 @@ void seting_menu(char name[100]){
                 refresh();
 				clear();
 				if(current_item == 0){
-					mvprintw(10,10,"Chose Color\n1.Red\n2.green\n3.regular");
-                    int chose;
-                    scanw("%d",&chose);
-                    if(chose == 1){
-                        p.color = 1;
-                    }
-                    else if(chose == 2){
-                        p.color = 2;
-                    }
-                    else{
-                        p.color = 0;
-                    }
+					chose_color(&p);
 					clear();
 					refresh();
 				}
 				if(current_item == 1){
-					mvprintw(10,10,"Chose level\n1.easy\n2.intermediate\n3.hard");
-                    int chose;
-                    scanw("%d",&chose);
-                    if(chose == 1){
-                        p.level = 3;
-                    }
-                    else if(chose == 2){
-                        p.level = 2;
-                    }
-                    else{
-                        p.level = 1;
-                    }
-                    p.health = p.level * 1000;
+					chose_level(&p);
 					clear();
 					refresh();
 				}
@@ -5561,6 +5664,26 @@ void show_wepons(struct Player *p){
             }
         }
     }
+    if(p->type_wepon_chosen == 1){
+        move(9,16);
+        printw("-->");
+    }
+    if(p->type_wepon_chosen == 2){
+        move(12,16);
+        printw("-->");
+    }
+    if(p->type_wepon_chosen == 3){
+        move(13,16);
+        printw("-->");
+    }
+    if(p->type_wepon_chosen == 4){
+        move(14,16);
+        printw("-->");
+    }
+    if(p->type_wepon_chosen == 5){
+        move(10,16);
+        printw("-->");
+    }
     move(8,20);
     printw("Short range wepons:");
     move(9,20);
@@ -5605,9 +5728,9 @@ void show_spells(struct Player *p){
 }
 
 void show_foods(struct Player *p){
-    int type1 = 0,type2 = 0,type3 = 0,type4 = 0;
+    int type1 = 0,type2 = 0,type3 = 0;
     for(int i = 0; i < p->food_number; i++){
-        if(p->foods[i].type == 1){
+        if(p->foods[i].type == 1 || p->foods[i].type == 4){
             type1 += 1;
         }
         if(p->foods[i].type == 2){
@@ -5616,18 +5739,13 @@ void show_foods(struct Player *p){
         if(p->foods[i].type == 3){
             type3 += 1;
         }
-        if(p->foods[i].type == 4){
-            type4 += 1;
-        }
     }
     move(8,20);
-    printw("%d   %s",type1,l);
+    printw("%d  %s  -regular food  -key: o",type1,l);
     move(9,20);
-    printw("%d   %s",type2,o);
+    printw("%d  %s  -alla food  -key: u",type2,o);
     move(10,20);
-    printw("%d   %s",type3,u);
-    move(11,20);
-    printw("%d   %s",type4,n);
+    printw("%d  %s  -magic food  -key: b",type3,u);
     refresh();
     getch();
     clear();
@@ -7550,5 +7668,146 @@ int is_win(struct Map *map){
         }
     }
     return 1;
+}
+
+void chose_color(struct Player *p){
+    const char *choices[4] = {
+        "red",
+		"green",
+        "regular",
+        "back"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(7,40,4,4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 4; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+				if(current_item == 0){
+					current_item = 4 - 1;
+				}else{
+					current_item -= 1;
+				}
+                break;
+            case KEY_DOWN:
+				if(current_item == 0 || current_item == 1 || current_item == 2){
+					current_item += 1;
+				}else{
+					current_item = 0;
+				}
+                break;
+            case 10:
+                refresh();
+				clear();
+				if(current_item == 0){
+					p->color = 1;
+					return;
+				}
+				if(current_item == 1){
+					p->color = 2;
+                    return;
+				}
+				if(current_item == 2){
+                    p->color = 3;
+                    return;
+				}
+				if(current_item == 3){
+					return;
+				}
+                break;
+        }
+    }
+}
+
+void chose_level(struct Player *p){
+    const char *choices[4] = {
+        "easy",
+		"medium",
+        "hard",
+        "back"
+    };
+    cbreak();
+    noecho();
+    curs_set(0);
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    init_pair(2, COLOR_YELLOW, COLOR_BLUE);
+    WINDOW *menu = newwin(7,40,4,4);
+    keypad(menu, TRUE);
+    int current_item = 0;
+    int ch;
+    while (1) {
+        for (int i = 0; i < 4; i++) {
+            if (i == current_item) {
+                wattron(menu, A_BOLD | COLOR_PAIR(2));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, A_BOLD | COLOR_PAIR(2));
+            } else {
+                wattron(menu, COLOR_PAIR(1));
+                mvwprintw(menu, i + 1, 1, "%s", choices[i]);
+                wattroff(menu, COLOR_PAIR(1));
+            }
+        }
+        wrefresh(menu);
+        ch = wgetch(menu);
+        switch (ch) {
+            case KEY_UP:
+				if(current_item == 0){
+					current_item = 4 - 1;
+				}else{
+					current_item -= 1;
+				}
+                break;
+            case KEY_DOWN:
+				if(current_item == 0 || current_item == 1 || current_item == 2){
+					current_item += 1;
+				}else{
+					current_item = 0;
+				}
+                break;
+            case 10:
+                refresh();
+				clear();
+				if(current_item == 0){
+					p->level = 3;
+                    p->health = p->level * 1000;
+					return;
+				}
+				if(current_item == 1){
+					p->level = 2;
+                    p->health = p->level * 1000;
+                    return;
+				}
+				if(current_item == 2){
+                    p->level = 1;
+                    p->health = p->level * 1000;
+                    return;
+				}
+				if(current_item == 3){
+					return;
+				}
+                break;
+        }
+    }
 }
 
